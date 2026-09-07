@@ -4,8 +4,8 @@
 
 const SUPABASE_CONFIG = {
   // You can set your Project URL & Anon Key here, or configure via the in-game setup modal.
-  url: window.__SUPABASE_URL__ || 'https://YOUR_SUPABASE_PROJECT_ID.supabase.co',
-  anonKey: window.__SUPABASE_ANON_KEY__ || 'YOUR_SUPABASE_ANON_KEY'
+  url: window.__SUPABASE_URL__ || 'https://jfqlgszjlmesupggpgcc.supabase.co',
+  anonKey: window.__SUPABASE_ANON_KEY__ || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpmcWxnc3pqbG1lc3VwZ2dwZ2NjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODg3ODI3OTIsImV4cCI6MjEwNDM1ODc5Mn0.o13XstbPjDqnTeNdyk836oHpRfRdr9_JY5PFMjO_80k'
 };
 
 class SupabaseService {

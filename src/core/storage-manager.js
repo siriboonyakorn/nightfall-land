@@ -223,8 +223,13 @@ class StorageManager {
     current.score = Math.max(0, (current.score || 0) + scoreDelta);
 
     if (levelCleared) {
+      if (!current.unlockedLevels) current.unlockedLevels = [1];
       if (!current.unlockedLevels.includes(levelCleared + 1) && levelCleared < 5) {
         current.unlockedLevels.push(levelCleared + 1);
+      }
+      if (!current.completedLevels) current.completedLevels = [];
+      if (!current.completedLevels.includes(levelCleared)) {
+        current.completedLevels.push(levelCleared);
       }
     }
 

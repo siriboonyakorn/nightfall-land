@@ -1,6 +1,5 @@
 -- ==========================================================================
--- NIGHT FALL LAND - Supabase Database Schema
--- Run this in your Supabase SQL Editor (Dashboard -> SQL Editor -> New query)
+-- NIGHT FALL LAND - Supabase Database Schema (Idempotent / Safe to re-run)
 -- ==========================================================================
 
 -- 1. Create Player Profiles Table
@@ -21,22 +20,25 @@ CREATE TABLE IF NOT EXISTS public.player_profiles (
 -- 2. Enable Row Level Security (RLS)
 ALTER TABLE public.player_profiles ENABLE ROW LEVEL SECURITY;
 
--- 3. Policy: Allow users to read their own profile (and public leaderboard profiles)
+-- 3. Drop existing policies if they already exist (avoids "already exists" errors)
+DROP POLICY IF EXISTS "Public profiles are viewable by everyone" ON public.player_profiles;
+DROP POLICY IF EXISTS "Users can insert their own profile" ON public.player_profiles;
+DROP POLICY IF EXISTS "Users can update their own profile" ON public.player_profiles;
+
+-- 4. Re-create Policies
 CREATE POLICY "Public profiles are viewable by everyone" 
 ON public.player_profiles FOR SELECT 
 USING (true);
 
--- 4. Policy: Allow users to insert their own profile
 CREATE POLICY "Users can insert their own profile" 
 ON public.player_profiles FOR INSERT 
 WITH CHECK (auth.uid() = id);
 
--- 5. Policy: Allow users to update their own profile
 CREATE POLICY "Users can update their own profile" 
 ON public.player_profiles FOR UPDATE 
 USING (auth.uid() = id);
 
--- 6. Trigger to automatically update updated_at timestamp
+-- 5. Trigger to automatically update updated_at timestamp
 CREATE OR REPLACE FUNCTION public.handle_updated_at()
 RETURNS TRIGGER AS $$
 BEGIN

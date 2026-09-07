@@ -17,7 +17,17 @@ class MenuUI {
     if (btnPlay) {
       btnPlay.addEventListener('click', () => {
         if (window.audioManager) window.audioManager.playClick();
-        this.startGame(1);
+        const user = window.storageManager.getCurrentUser();
+        const unlocked  = user && user.unlockedLevels ? [...user.unlockedLevels].sort((a,b)=>a-b) : [1];
+        const completed = user && user.completedLevels ? user.completedLevels : [];
+        // Play the highest unlocked but not yet completed level
+        let nextLevel = 1;
+        for (const lvl of unlocked) {
+          if (!completed.includes(lvl)) { nextLevel = lvl; break; }
+        }
+        // Fallback: replay the highest unlocked
+        if (completed.length >= unlocked.length) nextLevel = Math.max(...unlocked);
+        this.startGame(nextLevel);
       });
     }
 
@@ -77,15 +87,34 @@ class MenuUI {
     const user = window.storageManager.getCurrentUser();
     if (!user) return;
 
-    const nameEl = document.getElementById('profile-player-name');
-    const roleEl = document.getElementById('profile-player-role');
+    const nameEl    = document.getElementById('profile-player-name');
+    const roleEl    = document.getElementById('profile-player-role');
     const essenceEl = document.getElementById('profile-player-essence');
-    const avatarEl = document.getElementById('profile-player-avatar');
+    const avatarEl  = document.getElementById('profile-player-avatar');
 
-    if (nameEl) nameEl.textContent = user.username;
-    if (roleEl) roleEl.textContent = 'Darkwood Explorer';
-    if (essenceEl) essenceEl.textContent = user.essence || 0;
-    if (avatarEl) avatarEl.textContent = user.avatar || '🌙';
+    if (nameEl)    nameEl.textContent    = user.username;
+    if (roleEl)    roleEl.textContent    = 'Darkwood Explorer';
+    if (essenceEl) essenceEl.textContent = user.moonShards !== undefined ? user.moonShards : (user.essence || 0);
+    if (avatarEl)  avatarEl.textContent  = user.avatar || '🌙';
+
+    // Determine the highest unlocked level
+    const unlocked  = user.unlockedLevels ? [...user.unlockedLevels].sort((a,b) => a-b) : [1];
+    const completed = user.completedLevels || [];
+    const highestUnlocked = Math.max(...unlocked);
+
+    // Next playable = highest unlocked, or after all done = 5
+    const nextLevel = Math.min(highestUnlocked, 5);
+    const levelNames = ['', 'Darkwood Tutorial', 'Moon Village', 'Old Factory', 'Frozen Peak', 'The Void'];
+
+    const playBtn = document.getElementById('btn-menu-play');
+    if (playBtn) {
+      if (completed.includes(1) && nextLevel > 1) {
+        playBtn.innerHTML = `<span class="menu-icon">▶</span><span>Play — ${levelNames[nextLevel]}</span>`;
+      } else {
+        playBtn.innerHTML = '<span class="menu-icon">▶</span><span>Play Tutorial</span>';
+      }
+      playBtn.setAttribute('title', `Enter ${levelNames[nextLevel]}`);
+    }
   }
 
   renderLevels() {

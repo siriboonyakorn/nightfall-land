@@ -105,8 +105,21 @@ class GameEngine {
     const btnVictoryNext = document.getElementById('btn-victory-next');
     if (btnVictoryNext) {
       btnVictoryNext.addEventListener('click', () => {
-        this.returnToMenu();
-        window.screenManager.showToast('Chamber 2 (The Flooded Grotto) coming soon!', 'info');
+        const nextId = this.currentLevelId + 1;
+        if (nextId <= 5) {
+          const user = window.storageManager ? window.storageManager.getCurrentUser() : null;
+          const unlocked = user && user.unlockedLevels ? user.unlockedLevels : [1];
+          if (unlocked.includes(nextId)) {
+            window.screenManager.hideAllOverlays();
+            this.loadLevel(nextId);
+          } else {
+            this.returnToMenu();
+            window.screenManager.showToast('Complete the current level to unlock the next region!', 'info');
+          }
+        } else {
+          this.returnToMenu();
+          window.screenManager.showToast('You have conquered Night Fall Land! 🌟', 'success');
+        }
       });
     }
 
@@ -130,8 +143,8 @@ class GameEngine {
     window.screenManager.hideAllOverlays();
     this.closeDialogue();
 
-    // Create World & Player
-    this.world = new window.World();
+    // Create World (pass levelId so the right map is built)
+    this.world = new window.World(levelId);
     this.player = new window.Player(140, 320);
 
     if (window.audioManager) {
@@ -165,10 +178,17 @@ class GameEngine {
   }
 
   returnToMenu() {
+    // Close dialogue first (before changing state so it doesn't reset to PLAYING)
+    const modal = document.getElementById('modal-dialogue');
+    if (modal) modal.classList.remove('active');
+    // Now set state to MENU
     this.state = 'MENU';
     window.screenManager.hideAllOverlays();
-    this.closeDialogue();
     window.screenManager.showScreen('screen-menu');
+    if (window.menuUI) {
+      window.menuUI.updateProfileDisplay();
+      window.menuUI.renderLevels();
+    }
   }
 
   togglePause() {
@@ -186,12 +206,21 @@ class GameEngine {
     this.state = 'VICTORY';
     if (window.audioManager) window.audioManager.playVictory();
 
-    // Save progress
-    window.storageManager.updateUserProgress(this.player.shards * 50, 500, this.currentLevelId);
+    // Save progress (fire-and-forget async — don't await in game loop)
+    const totalShards = this.world ? (this.world.totalShards || 1) : 1;
+    if (window.storageManager) {
+      window.storageManager.updateUserProgress(
+        this.player.shards * 50,
+        500,
+        this.currentLevelId
+      );
+    }
 
     this.hud.showVictoryOverlay({
       shards: this.player.shards,
-      time: this.elapsedTime
+      totalShards: totalShards,
+      time: this.elapsedTime,
+      levelId: this.currentLevelId
     });
   }
 
@@ -233,6 +262,8 @@ class GameEngine {
 
   updateGame(dt) {
     if (!this.player || !this.world) return;
+    // Only update when truly playing (not VICTORY/PAUSED/DIALOGUE)
+    if (this.state !== 'PLAYING') return;
 
     this.player.update(dt, this.input, this.world, window.audioManager);
     this.world.update(dt, this.player, window.audioManager);
