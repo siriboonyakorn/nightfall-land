@@ -24,11 +24,12 @@ ALTER TABLE public.player_profiles ENABLE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS "Public profiles are viewable by everyone" ON public.player_profiles;
 DROP POLICY IF EXISTS "Users can insert their own profile" ON public.player_profiles;
 DROP POLICY IF EXISTS "Users can update their own profile" ON public.player_profiles;
+DROP POLICY IF EXISTS "Users can view their own profile" ON public.player_profiles;
 
 -- 4. Re-create Policies
-CREATE POLICY "Public profiles are viewable by everyone" 
+CREATE POLICY "Users can view their own profile"
 ON public.player_profiles FOR SELECT 
-USING (true);
+USING (auth.uid() = id);
 
 CREATE POLICY "Users can insert their own profile" 
 ON public.player_profiles FOR INSERT 
@@ -36,7 +37,8 @@ WITH CHECK (auth.uid() = id);
 
 CREATE POLICY "Users can update their own profile" 
 ON public.player_profiles FOR UPDATE 
-USING (auth.uid() = id);
+USING (auth.uid() = id)
+WITH CHECK (auth.uid() = id);
 
 -- 5. Trigger to automatically update updated_at timestamp
 CREATE OR REPLACE FUNCTION public.handle_updated_at()

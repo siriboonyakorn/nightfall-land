@@ -3,46 +3,75 @@
    ========================================================================== */
 
 const SUPABASE_CONFIG = {
-  // You can set your Project URL & Anon Key here, or configure via the in-game setup modal.
-  url: window.__SUPABASE_URL__ || 'https://jfqlgszjlmesupggpgcc.supabase.co',
-  anonKey: window.__SUPABASE_ANON_KEY__ || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpmcWxnc3pqbG1lc3VwZ2dwZ2NjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODg3ODI3OTIsImV4cCI6MjEwNDM1ODc5Mn0.o13XstbPjDqnTeNdyk836oHpRfRdr9_JY5PFMjO_80k'
+  url: '',
+  anonKey: ''
 };
 
 class SupabaseService {
   constructor() {
     this.client = null;
     this.isConfigured = false;
-    this.init();
+    this.sessionUrl = null;
+    this.sessionKey = null;
+    this.ready = this.init();
   }
 
-  init() {
-    // Check localStorage for saved credentials (allows connecting without editing code)
-    const savedUrl = localStorage.getItem('nightfall_supabase_url');
-    const savedKey = localStorage.getItem('nightfall_supabase_key');
+  async init() {
+    if (!this.sessionUrl && !SUPABASE_CONFIG.url) {
+      try {
+        const response = await fetch('/api/public-config');
+        if (response.ok) {
+          const config = await response.json();
+          SUPABASE_CONFIG.url = config.url || '';
+          SUPABASE_CONFIG.anonKey = config.anonKey || '';
+        }
+      } catch (e) {
+        // Cloud saves remain available through the manual setup modal.
+      }
+    }
 
-    const url = savedUrl || SUPABASE_CONFIG.url;
-    const key = savedKey || SUPABASE_CONFIG.anonKey;
+    const url = this.sessionUrl || SUPABASE_CONFIG.url;
+    const key = this.sessionKey || SUPABASE_CONFIG.anonKey;
 
-    if (url && key && !url.includes('YOUR_SUPABASE_PROJECT_ID') && window.supabase) {
+    if (this.isAllowedUrl(url) && key && window.supabase) {
       try {
         this.client = window.supabase.createClient(url, key);
         this.isConfigured = true;
-        console.log('[Supabase] Initialized successfully with project:', url);
+        return true;
       } catch (e) {
-        console.warn('[Supabase] Init error:', e);
         this.isConfigured = false;
       }
     } else {
       this.isConfigured = false;
     }
+    return false;
   }
 
   saveCredentials(url, key) {
-    if (!url || !key) return false;
-    localStorage.setItem('nightfall_supabase_url', url.trim());
-    localStorage.setItem('nightfall_supabase_key', key.trim());
-    this.init();
-    return this.isConfigured;
+    const trimmedUrl = (url || '').trim();
+    const trimmedKey = (key || '').trim();
+    if (!this.isAllowedUrl(trimmedUrl) || !trimmedKey) return false;
+    this.sessionUrl = trimmedUrl;
+    this.sessionKey = trimmedKey;
+    try {
+      this.client = window.supabase.createClient(trimmedUrl, trimmedKey);
+      this.isConfigured = true;
+      this.ready = Promise.resolve(true);
+      return true;
+    } catch (e) {
+      this.isConfigured = false;
+      this.ready = Promise.resolve(false);
+      return false;
+    }
+  }
+
+  isAllowedUrl(url) {
+    try {
+      const parsed = new URL(url);
+      return parsed.protocol === 'https:' && parsed.hostname.endsWith('.supabase.co');
+    } catch (e) {
+      return false;
+    }
   }
 
   // Generate synthetic email from username for seamless Supabase Auth

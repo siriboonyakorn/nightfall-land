@@ -108,7 +108,11 @@ class ScreenManager {
     if (type === 'success') icon = '✓';
     if (type === 'error') icon = '✕';
 
-    toast.innerHTML = `<span>${icon}</span><span>${message}</span>`;
+    const iconEl = document.createElement('span');
+    iconEl.textContent = icon;
+    const messageEl = document.createElement('span');
+    messageEl.textContent = String(message);
+    toast.append(iconEl, messageEl);
     container.appendChild(toast);
 
     setTimeout(() => {

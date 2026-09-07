@@ -200,7 +200,7 @@
             <span><b>R</b> Reset Puzzle</span>
             <span><b>ESC</b> Pause</span>
           </div>
-          <button id="btn-quick-reset" class="btn btn-secondary" style="padding: 0.35rem 0.85rem; font-size: 0.8rem; pointer-events: auto;" onclick="window.gameEngine.restartLevel();">
+          <button id="btn-quick-reset" class="btn btn-secondary" style="padding: 0.35rem 0.85rem; font-size: 0.8rem; pointer-events: auto;">
             ↺ Reset Room (R)
           </button>
         </div>
@@ -304,7 +304,7 @@
           </div>
           <div class="input-group">
             <label class="input-label" for="supabase-key-input">Anon Public Key</label>
-            <input type="password" id="supabase-key-input" class="input-field" placeholder="eyJhbGciOiJIUzI1NiIsInR5c...">
+            <input type="password" id="supabase-key-input" class="input-field" placeholder="Paste your public anon key">
           </div>
           <div style="font-size: 0.78rem; color: var(--text-muted);">
             Don't have credentials yet? You can test locally or run <code>supabase_schema.sql</code> in your Supabase SQL Editor.
@@ -446,12 +446,17 @@
 
   <!-- Application Bootstrap -->
   <script>
-    document.addEventListener('DOMContentLoaded', () => {
+    document.addEventListener('DOMContentLoaded', async () => {
+      await window.supabaseService.ready;
+
       // 1. Initialize Screen Router
       window.screenManager.init();
 
       // 2. Initialize Game Engine Loop
       window.gameEngine.init();
+      document.getElementById('btn-quick-reset').addEventListener('click', () => {
+        window.gameEngine.restartLevel();
+      });
 
       // 3. Initialize UI Controllers
       window.authUI.init();

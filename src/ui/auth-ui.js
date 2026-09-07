@@ -100,8 +100,8 @@ class AuthUI {
     const inputKey = document.getElementById('supabase-key-input');
 
     if (inputUrl && inputKey) {
-      inputUrl.value = localStorage.getItem('nightfall_supabase_url') || '';
-      inputKey.value = localStorage.getItem('nightfall_supabase_key') || '';
+      inputUrl.value = '';
+      inputKey.value = '';
     }
 
     if (btnSaveCloud) {

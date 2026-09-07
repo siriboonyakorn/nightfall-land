@@ -880,6 +880,22 @@ Possible hosting platforms:
 
 ## Database
 
+### Vercel Environment Variables
+
+For cloud saves, configure these environment variables in Vercel. Never put the
+service-role key in frontend files or expose it to the browser:
+
+```text
+SUPABASE_URL=https://your-project.supabase.co
+SUPABASE_ANON_KEY=your-public-anon-key
+SUPABASE_SERVICE_ROLE_KEY=your-service-role-key
+```
+
+The browser receives the public Supabase URL and anon key at runtime from
+`api/public-config.js` for authentication. These values are public by design.
+Database profile operations are routed through `api/player-profile.js`, which
+verifies the user's access token before using the server-side service-role key.
+
 ### Initial Version
 
 **No database is required.**

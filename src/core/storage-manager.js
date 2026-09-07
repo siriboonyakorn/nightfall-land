@@ -33,7 +33,9 @@ class StorageManager {
   setCurrentUser(user) {
     try {
       if (user) {
-        localStorage.setItem(STORAGE_KEYS.CURRENT_USER, JSON.stringify(user));
+        const { password, passwordHash, passwordSalt, ...safeUser } = user;
+        localStorage.setItem(STORAGE_KEYS.CURRENT_USER, JSON.stringify(safeUser));
+        return safeUser;
       } else {
         localStorage.removeItem(STORAGE_KEYS.CURRENT_USER);
       }
@@ -42,14 +44,27 @@ class StorageManager {
     }
   }
 
+  async profileRequest(method, token, profile = null) {
+    const response = await fetch('/api/player-profile', {
+      method,
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      },
+      body: profile ? JSON.stringify(profile) : undefined
+    });
+    if (!response.ok) throw new Error('Profile request failed.');
+    return response.json();
+  }
+
   // 1. SUPABASE & LOCAL REGISTRATION (Username & Password)
   async register(username, password) {
     const trimmed = (username || '').trim();
-    if (!trimmed || trimmed.length < 3) {
-      return { success: false, message: 'Traveler name must be at least 3 characters.' };
+    if (!/^[A-Za-z0-9_]{3,32}$/.test(trimmed)) {
+      return { success: false, message: 'Traveler name must be 3-32 letters, numbers, or underscores.' };
     }
-    if (!password || password.length < 4) {
-      return { success: false, message: 'Secret key / password must be at least 4 characters.' };
+    if (!password || password.length < 8) {
+      return { success: false, message: 'Secret key / password must be at least 8 characters.' };
     }
 
     // A. If Supabase is connected
@@ -69,6 +84,9 @@ class StorageManager {
         if (authError) {
           return { success: false, message: authError.message };
         }
+        if (!authData.user) {
+          return { success: false, message: 'Registration did not create an account.' };
+        }
 
         const userObj = {
           id: authData.user.id,
@@ -82,9 +100,11 @@ class StorageManager {
           isCloud: true
         };
 
-        // Insert initial player profile row
-        await client.from('player_profiles').upsert({
-          id: authData.user.id,
+        if (!authData.session || !authData.session.access_token) {
+          return { success: false, message: 'Confirm your account before signing in.' };
+        }
+
+        const profile = await this.profileRequest('POST', authData.session.access_token, {
           username: trimmed,
           avatar: '🌙',
           current_region: 'Darkwood',
@@ -108,9 +128,16 @@ class StorageManager {
       return { success: false, message: 'A traveler with this name already exists locally.' };
     }
 
+    const passwordSalt = crypto.randomUUID();
+    const passwordHash = await this.hashPassword(password, passwordSalt);
+    if (!passwordHash) {
+      return { success: false, message: 'Secure local storage is unavailable in this browser.' };
+    }
+
     const localUser = {
       username: trimmed,
-      password: password,
+      passwordHash,
+      passwordSalt,
       avatar: '🌙',
       currentRegion: 'Darkwood',
       currentLevel: 1,
@@ -122,9 +149,9 @@ class StorageManager {
 
     users[trimmed.toLowerCase()] = localUser;
     this.saveUsers(users);
-    this.setCurrentUser(localUser);
+    const sessionUser = this.setCurrentUser(localUser);
 
-    return { success: true, user: localUser };
+    return { success: true, user: sessionUser || localUser };
   }
 
   // 2. SUPABASE & LOCAL LOGIN (Username & Password)
@@ -149,12 +176,7 @@ class StorageManager {
           return { success: false, message: authError.message };
         }
 
-        // Fetch cloud profile
-        const { data: profile } = await client
-          .from('player_profiles')
-          .select('*')
-          .eq('id', authData.user.id)
-          .single();
+        const profile = await this.profileRequest('GET', authData.session.access_token);
 
         const userObj = {
           id: authData.user.id,
@@ -179,12 +201,27 @@ class StorageManager {
     // B. Local Fallback
     const users = this.getUsers();
     const user = users[trimmed.toLowerCase()];
-    if (!user || user.password !== password) {
+    if (!user) {
       return { success: false, message: 'Invalid name or secret key.' };
     }
 
+    let validPassword = false;
+    if (user.passwordHash && user.passwordSalt) {
+      validPassword = await this.verifyPassword(password, user.passwordHash, user.passwordSalt);
+    } else if (user.password) {
+      validPassword = user.password === password;
+      if (validPassword) {
+        user.passwordSalt = crypto.randomUUID();
+        user.passwordHash = await this.hashPassword(password, user.passwordSalt);
+        delete user.password;
+        users[trimmed.toLowerCase()] = user;
+        this.saveUsers(users);
+      }
+    }
+    if (!validPassword) return { success: false, message: 'Invalid name or secret key.' };
+
     this.setCurrentUser(user);
-    return { success: true, user };
+    return { success: true, user: this.getCurrentUser() };
   }
 
   // 3. Quick Guest Mode
@@ -238,12 +275,15 @@ class StorageManager {
     // Sync to Supabase if logged in with cloud account
     if (current.isCloud && window.supabaseService && window.supabaseService.isConfigured && current.id) {
       try {
-        await window.supabaseService.client.from('player_profiles').update({
+        const session = await window.supabaseService.client.auth.getSession();
+        const accessToken = session.data.session && session.data.session.access_token;
+        if (!accessToken) throw new Error('Cloud session expired.');
+        await this.profileRequest('PATCH', accessToken, {
           moon_shards: current.moonShards,
           score: current.score,
           unlocked_levels: current.unlockedLevels,
           current_level: levelCleared ? levelCleared + 1 : current.currentLevel
-        }).eq('id', current.id);
+        });
         console.log('[Supabase] Progression synced to cloud!');
       } catch (e) {
         console.warn('[Supabase] Sync failed, saved locally:', e);
@@ -289,6 +329,24 @@ class StorageManager {
     try {
       localStorage.setItem(STORAGE_KEYS.SETTINGS, JSON.stringify(settings));
     } catch (e) {}
+  }
+
+  async hashPassword(password, salt) {
+    if (!window.crypto || !window.crypto.subtle) return null;
+    const material = await window.crypto.subtle.importKey(
+      'raw', new TextEncoder().encode(password), 'PBKDF2', false, ['deriveBits']
+    );
+    const bits = await window.crypto.subtle.deriveBits(
+      { name: 'PBKDF2', salt: new TextEncoder().encode(salt), iterations: 120000, hash: 'SHA-256' },
+      material,
+      256
+    );
+    return Array.from(new Uint8Array(bits), byte => byte.toString(16).padStart(2, '0')).join('');
+  }
+
+  async verifyPassword(password, expectedHash, salt) {
+    const actualHash = await this.hashPassword(password, salt);
+    return Boolean(actualHash && actualHash === expectedHash);
   }
 }
 
