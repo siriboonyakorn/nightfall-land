@@ -1,0 +1,52 @@
+-- ==========================================================================
+-- NIGHT FALL LAND - Supabase Database Schema
+-- Run this in your Supabase SQL Editor (Dashboard -> SQL Editor -> New query)
+-- ==========================================================================
+
+-- 1. Create Player Profiles Table
+CREATE TABLE IF NOT EXISTS public.player_profiles (
+  id UUID REFERENCES auth.users ON DELETE CASCADE PRIMARY KEY,
+  username TEXT UNIQUE NOT NULL,
+  avatar TEXT DEFAULT '🌙',
+  current_region TEXT DEFAULT 'Darkwood',
+  current_level INT DEFAULT 1,
+  unlocked_levels INT[] DEFAULT ARRAY[1],
+  moon_shards INT DEFAULT 0,
+  score INT DEFAULT 0,
+  settings JSONB DEFAULT '{"masterVolume": 0.8, "sfxVolume": 0.75, "bgmVolume": 0.5}'::jsonb,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL,
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
+);
+
+-- 2. Enable Row Level Security (RLS)
+ALTER TABLE public.player_profiles ENABLE ROW LEVEL SECURITY;
+
+-- 3. Policy: Allow users to read their own profile (and public leaderboard profiles)
+CREATE POLICY "Public profiles are viewable by everyone" 
+ON public.player_profiles FOR SELECT 
+USING (true);
+
+-- 4. Policy: Allow users to insert their own profile
+CREATE POLICY "Users can insert their own profile" 
+ON public.player_profiles FOR INSERT 
+WITH CHECK (auth.uid() = id);
+
+-- 5. Policy: Allow users to update their own profile
+CREATE POLICY "Users can update their own profile" 
+ON public.player_profiles FOR UPDATE 
+USING (auth.uid() = id);
+
+-- 6. Trigger to automatically update updated_at timestamp
+CREATE OR REPLACE FUNCTION public.handle_updated_at()
+RETURNS TRIGGER AS $$
+BEGIN
+  NEW.updated_at = timezone('utc'::text, now());
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+DROP TRIGGER IF EXISTS on_player_profile_updated ON public.player_profiles;
+CREATE TRIGGER on_player_profile_updated
+  BEFORE UPDATE ON public.player_profiles
+  FOR EACH ROW
+  EXECUTE FUNCTION public.handle_updated_at();

@@ -1,0 +1,272 @@
+/* ==========================================================================
+   NIGHT FALL LAND - Puzzle Adventure HUD & Game View Styling
+   ========================================================================== */
+
+.game-screen {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background: #060814;
+}
+
+#game-canvas {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+  z-index: var(--z-canvas);
+  image-rendering: pixelated;
+}
+
+/* In-Game HUD Container */
+.game-hud {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: var(--z-hud);
+  padding: 1.25rem 2rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  box-sizing: border-box;
+}
+
+/* Top HUD Bar */
+.hud-top-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  gap: 1.5rem;
+}
+
+/* Tutorial Guide Step Banner */
+.hud-tutorial-banner {
+  background: rgba(12, 16, 38, 0.85);
+  backdrop-filter: var(--glass-blur);
+  border: 1px solid rgba(0, 240, 255, 0.4);
+  box-shadow: 0 4px 18px rgba(0, 240, 255, 0.2);
+  padding: 0.65rem 1.4rem;
+  border-radius: var(--radius-full);
+  font-family: var(--font-tech);
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #fff;
+  letter-spacing: 0.04em;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  pointer-events: auto;
+  animation: bannerPulse 3s infinite alternate;
+}
+
+@keyframes bannerPulse {
+  0% { border-color: rgba(0, 240, 255, 0.3); }
+  100% { border-color: rgba(168, 85, 247, 0.6); box-shadow: 0 4px 20px rgba(168, 85, 247, 0.35); }
+}
+
+.hud-tutorial-banner::before {
+  content: '✦ TUTORIAL:';
+  color: var(--accent-cyan);
+  font-weight: 800;
+}
+
+/* Top Right Inventory HUD */
+.hud-inventory-group {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  pointer-events: auto;
+}
+
+.hud-item-pill {
+  background: rgba(10, 14, 32, 0.75);
+  backdrop-filter: var(--glass-blur);
+  border: 1px solid var(--border-subtle);
+  padding: 0.45rem 1rem;
+  border-radius: var(--radius-full);
+  font-family: var(--font-tech);
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+}
+
+.hud-item-pill.pill-shard {
+  border-color: rgba(0, 240, 255, 0.4);
+  color: var(--accent-cyan);
+}
+
+.hud-item-pill.pill-key {
+  border-color: rgba(251, 191, 36, 0.4);
+  color: var(--accent-gold);
+}
+
+/* Floating Interaction Prompt Tooltip */
+.hud-interaction-tooltip {
+  position: absolute;
+  bottom: 5.5rem;
+  left: 50%;
+  transform: translateX(-50%) translateY(10px);
+  background: rgba(15, 23, 50, 0.95);
+  backdrop-filter: var(--glass-blur);
+  border: 1.5px solid var(--accent-cyan);
+  box-shadow: 0 0 20px rgba(0, 240, 255, 0.5);
+  color: #fff;
+  font-family: var(--font-tech);
+  font-size: 0.95rem;
+  font-weight: 700;
+  padding: 0.6rem 1.4rem;
+  border-radius: var(--radius-full);
+  opacity: 0;
+  visibility: hidden;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  pointer-events: none;
+}
+
+.hud-interaction-tooltip.visible {
+  opacity: 1;
+  visibility: visible;
+  transform: translateX(-50%) translateY(0);
+}
+
+/* Bottom Hint Row */
+.hud-bottom-hints {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+
+.hud-key-pill {
+  background: rgba(10, 14, 30, 0.65);
+  backdrop-filter: var(--glass-blur);
+  border: 1px solid var(--border-subtle);
+  padding: 0.35rem 0.85rem;
+  border-radius: var(--radius-full);
+  display: flex;
+  gap: 1rem;
+}
+
+/* Tablet & Lore Dialogue Modal */
+.dialogue-modal {
+  position: absolute;
+  bottom: 2.5rem;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 90%;
+  max-width: 620px;
+  background: rgba(10, 14, 35, 0.95);
+  backdrop-filter: var(--glass-blur-heavy);
+  border: 2px solid var(--accent-cyan);
+  box-shadow: 0 8px 32px rgba(0, 240, 255, 0.3);
+  border-radius: var(--radius-lg);
+  padding: 1.5rem 2rem;
+  z-index: var(--z-modal);
+  display: none;
+  flex-direction: column;
+  gap: 0.85rem;
+  animation: dialogueSlideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.dialogue-modal.active {
+  display: flex;
+}
+
+@keyframes dialogueSlideUp {
+  from {
+    opacity: 0;
+    transform: translateX(-50%) translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+}
+
+.dialogue-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid var(--border-subtle);
+  padding-bottom: 0.5rem;
+}
+
+.dialogue-title {
+  font-family: var(--font-display);
+  font-size: 1.15rem;
+  color: var(--accent-cyan);
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.dialogue-body {
+  font-size: 0.95rem;
+  line-height: 1.6;
+  color: #e2e8f0;
+  white-space: pre-line;
+}
+
+.dialogue-footer {
+  display: flex;
+  justify-content: flex-end;
+}
+
+/* Touch Virtual Buttons */
+.touch-controls-layer {
+  position: absolute;
+  bottom: 1.5rem;
+  left: 0;
+  width: 100%;
+  padding: 0 2rem;
+  display: none;
+  justify-content: space-between;
+  pointer-events: none;
+  box-sizing: border-box;
+}
+
+@media (max-width: 1024px), (pointer: coarse) {
+  .touch-controls-layer {
+    display: flex;
+  }
+}
+
+.touch-dpad-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 50px);
+  grid-template-rows: repeat(3, 50px);
+  gap: 6px;
+  pointer-events: auto;
+}
+
+.touch-btn {
+  width: 50px;
+  height: 50px;
+  border-radius: var(--radius-sm);
+  background: rgba(15, 22, 48, 0.8);
+  border: 1px solid rgba(0, 240, 255, 0.4);
+  color: #fff;
+  font-size: 1.1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  user-select: none;
+}
+
+.touch-btn:active {
+  background: rgba(0, 240, 255, 0.3);
+  transform: scale(0.92);
+}
