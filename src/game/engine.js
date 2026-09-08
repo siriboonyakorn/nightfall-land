@@ -107,13 +107,33 @@ class GameEngine {
       btnVictoryNext.addEventListener('click', () => {
         if (window.audioManager) window.audioManager.playClick();
         const nextId = this.currentLevelId + 1;
-        if (nextId <= 5) {
+        if (nextId <= 8) {
           window.screenManager.hideAllOverlays();
           this.loadLevel(nextId);
         } else {
           this.returnToMenu();
           window.screenManager.showToast('You have conquered Night Fall Land! 🌟', 'success');
         }
+      });
+    }
+
+    // Replay Level button in victory overlay
+    const btnVictoryReplay = document.getElementById('btn-victory-replay');
+    if (btnVictoryReplay) {
+      btnVictoryReplay.addEventListener('click', () => {
+        if (window.audioManager) window.audioManager.playClick();
+        window.screenManager.hideAllOverlays();
+        this.loadLevel(this.currentLevelId);
+      });
+    }
+
+    // World Map button in victory overlay
+    const btnVictoryMap = document.getElementById('btn-victory-map');
+    if (btnVictoryMap) {
+      btnVictoryMap.addEventListener('click', () => {
+        if (window.audioManager) window.audioManager.playClick();
+        this.returnToMenu();
+        window.screenManager.openModal('modal-levels');
       });
     }
 
@@ -202,11 +222,14 @@ class GameEngine {
     this.state = 'VICTORY';
     if (window.audioManager) window.audioManager.playVictory();
 
-    // Save progress (fire-and-forget async — don't await in game loop)
-    const totalShards = this.world ? (this.world.totalShards || 1) : 1;
+    const totalShards   = this.world ? (this.world.totalShards   || 1) : 1;
+    const secretsFound  = this.world ? (this.world.secretsFound  || 0) : 0;
+    const totalSecrets  = this.world ? (this.world.totalSecrets  || 0) : 0;
+
+    // Save progress including actual shards collected
     if (window.storageManager) {
       window.storageManager.updateUserProgress(
-        this.player.shards * 50,
+        this.player.shards,   // real shard delta
         500,
         this.currentLevelId
       );
@@ -214,7 +237,9 @@ class GameEngine {
 
     this.hud.showVictoryOverlay({
       shards: this.player.shards,
-      totalShards: totalShards,
+      totalShards,
+      secretsFound,
+      totalSecrets,
       time: this.elapsedTime,
       levelId: this.currentLevelId
     });
@@ -276,6 +301,9 @@ class GameEngine {
 
     // 2. Draw Player Entity
     this.player.draw(this.ctx);
+
+    // 3. Atmospheric Darkness & Lighting overlay (must be after player)
+    this.world.drawLighting(this.ctx, this.player);
   }
 
   renderAmbientCanvas(dt) {

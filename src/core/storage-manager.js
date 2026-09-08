@@ -235,7 +235,12 @@ class StorageManager {
       moonShards: 0,
       score: 0,
       isGuest: true,
-      isCloud: false
+      isCloud: false,
+      unlockedSkins: ['default'],
+      equippedSkin: 'default',
+      unlockedTrails: ['none'],
+      equippedTrail: 'none',
+      secretRecords: {}
     };
     this.setCurrentUser(guestUser);
     return guestUser;
@@ -255,7 +260,7 @@ class StorageManager {
   async updateUserProgress(shardsDelta = 0, scoreDelta = 0, levelCleared = null) {
     let current = this.getCurrentUser();
     if (!current) {
-      current = this.loginGuest();
+      current = this.loginAsGuest();
     }
 
     current.moonShards = Math.max(0, (current.moonShards || 0) + shardsDelta);
@@ -263,7 +268,7 @@ class StorageManager {
 
     if (levelCleared) {
       if (!current.unlockedLevels) current.unlockedLevels = [1];
-      if (!current.unlockedLevels.includes(levelCleared + 1) && levelCleared < 5) {
+      if (!current.unlockedLevels.includes(levelCleared + 1) && levelCleared < 8) {
         current.unlockedLevels.push(levelCleared + 1);
       }
       if (!current.completedLevels) current.completedLevels = [];
@@ -300,6 +305,79 @@ class StorageManager {
     }
 
     return current;
+  }
+
+  // 6. Secret Discovery Tracking
+  discoverSecret(levelId, secretId) {
+    const current = this.getCurrentUser();
+    if (!current) return;
+    if (!current.secretRecords) current.secretRecords = {};
+    if (!current.secretRecords[levelId]) current.secretRecords[levelId] = [];
+    if (!current.secretRecords[levelId].includes(secretId)) {
+      current.secretRecords[levelId].push(secretId);
+      this.setCurrentUser(current);
+      if (!current.isGuest) {
+        const users = this.getUsers();
+        if (users[current.username.toLowerCase()]) {
+          users[current.username.toLowerCase()] = current;
+          this.saveUsers(users);
+        }
+      }
+    }
+  }
+
+  // 7. Moon Sanctuary Cosmetic Unlocks
+  unlockCosmetic(category, itemId, cost) {
+    const current = this.getCurrentUser();
+    if (!current) return { success: false, message: 'Please log in or enter as guest.' };
+    const shards = current.moonShards || 0;
+    if (shards < cost) {
+      return { success: false, message: `Need ${cost} Moon Shards (You have ${shards}).` };
+    }
+
+    if (category === 'skin') {
+      if (!current.unlockedSkins) current.unlockedSkins = ['default'];
+      if (!current.unlockedSkins.includes(itemId)) {
+        current.moonShards -= cost;
+        current.unlockedSkins.push(itemId);
+      }
+      current.equippedSkin = itemId;
+    } else if (category === 'trail') {
+      if (!current.unlockedTrails) current.unlockedTrails = ['none'];
+      if (!current.unlockedTrails.includes(itemId)) {
+        current.moonShards -= cost;
+        current.unlockedTrails.push(itemId);
+      }
+      current.equippedTrail = itemId;
+    }
+
+    this.setCurrentUser(current);
+    if (!current.isGuest) {
+      const users = this.getUsers();
+      if (users[current.username.toLowerCase()]) {
+        users[current.username.toLowerCase()] = current;
+        this.saveUsers(users);
+      }
+    }
+    return { success: true, user: current };
+  }
+
+  equipCosmetic(category, itemId) {
+    const current = this.getCurrentUser();
+    if (!current) return;
+    if (category === 'skin') {
+      current.equippedSkin = itemId;
+    } else if (category === 'trail') {
+      current.equippedTrail = itemId;
+    }
+    this.setCurrentUser(current);
+    if (!current.isGuest) {
+      const users = this.getUsers();
+      if (users[current.username.toLowerCase()]) {
+        users[current.username.toLowerCase()] = current;
+        this.saveUsers(users);
+      }
+    }
   }
 
   // Local helper methods
