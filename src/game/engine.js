@@ -105,17 +105,11 @@ class GameEngine {
     const btnVictoryNext = document.getElementById('btn-victory-next');
     if (btnVictoryNext) {
       btnVictoryNext.addEventListener('click', () => {
+        if (window.audioManager) window.audioManager.playClick();
         const nextId = this.currentLevelId + 1;
         if (nextId <= 5) {
-          const user = window.storageManager ? window.storageManager.getCurrentUser() : null;
-          const unlocked = user && user.unlockedLevels ? user.unlockedLevels : [1];
-          if (unlocked.includes(nextId)) {
-            window.screenManager.hideAllOverlays();
-            this.loadLevel(nextId);
-          } else {
-            this.returnToMenu();
-            window.screenManager.showToast('Complete the current level to unlock the next region!', 'info');
-          }
+          window.screenManager.hideAllOverlays();
+          this.loadLevel(nextId);
         } else {
           this.returnToMenu();
           window.screenManager.showToast('You have conquered Night Fall Land! 🌟', 'success');
@@ -145,7 +139,9 @@ class GameEngine {
 
     // Create World (pass levelId so the right map is built)
     this.world = new window.World(levelId);
-    this.player = new window.Player(140, 320);
+    const startX = (this.world.playerStart && this.world.playerStart.x) || 140;
+    const startY = (this.world.playerStart && this.world.playerStart.y) || 320;
+    this.player = new window.Player(startX, startY);
 
     if (window.audioManager) {
       window.audioManager.unlockAudio();

@@ -176,6 +176,13 @@ class Door {
   update(plates, levers, player) {
     if (this.requiresKey) {
       // Unlocked when player interacts with key
+      this.openProgress += ((this.isOpen ? 1 : 0) - this.openProgress) * 0.15;
+      return;
+    }
+
+    if (this.isCompound || this.isSequence) {
+      // State managed externally by world compound rules or sequence manager
+      this.openProgress += ((this.isOpen ? 1 : 0) - this.openProgress) * 0.15;
       return;
     }
 
@@ -195,7 +202,7 @@ class Door {
     }
 
     this.isOpen = shouldOpen;
-    this.openProgress += (this.isOpen ? 1 : 0 - this.openProgress) * 0.15;
+    this.openProgress += ((this.isOpen ? 1 : 0) - this.openProgress) * 0.15;
   }
 
   draw(ctx) {

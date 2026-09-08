@@ -270,3 +270,92 @@
   background: rgba(0, 240, 255, 0.3);
   transform: scale(0.92);
 }
+
+/* ==========================================================================
+   In-Game Overlays (Pause Menu, Victory / Level Complete)
+   ========================================================================== */
+.game-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(4, 6, 16, 0.85);
+  backdrop-filter: var(--glass-blur-heavy);
+  z-index: var(--z-modal);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transition: opacity 0.3s cubic-bezier(0.16, 1, 0.3, 1), visibility 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.game-overlay.active {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+}
+
+.game-overlay-panel {
+  width: 90%;
+  max-width: 440px;
+  background: rgba(12, 17, 38, 0.95);
+  backdrop-filter: var(--glass-blur-heavy);
+  border: 1.5px solid var(--border-neon-cyan);
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.8), var(--glow-cyan);
+  border-radius: var(--radius-lg);
+  padding: 2.25rem 2rem;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.15rem;
+  transform: scale(0.9) translateY(15px);
+  transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.game-overlay.active .game-overlay-panel {
+  transform: scale(1) translateY(0);
+}
+
+#overlay-victory .game-overlay-panel {
+  border-color: rgba(251, 191, 36, 0.6);
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.85), 0 0 35px rgba(251, 191, 36, 0.35);
+}
+
+.overlay-title {
+  font-family: var(--font-display);
+  font-size: 1.8rem;
+  font-weight: 900;
+  letter-spacing: 0.12em;
+  margin: 0;
+}
+
+.text-gold-gradient {
+  background: var(--grad-gold-amber);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  text-shadow: 0 0 30px rgba(251, 191, 36, 0.4);
+}
+
+.overlay-stats-box {
+  width: 100%;
+  background: rgba(8, 12, 28, 0.7);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  padding: 0.85rem 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+  box-sizing: border-box;
+}
+
+.overlay-stat-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-family: var(--font-tech);
+  font-size: 0.9rem;
+}

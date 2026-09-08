@@ -253,8 +253,10 @@ class StorageManager {
 
   // 5. UPDATE & SYNC PROGRESSION TO SUPABASE
   async updateUserProgress(shardsDelta = 0, scoreDelta = 0, levelCleared = null) {
-    const current = this.getCurrentUser();
-    if (!current) return;
+    let current = this.getCurrentUser();
+    if (!current) {
+      current = this.loginGuest();
+    }
 
     current.moonShards = Math.max(0, (current.moonShards || 0) + shardsDelta);
     current.score = Math.max(0, (current.score || 0) + scoreDelta);
