@@ -1,28 +1,37 @@
 /* ==========================================================================
-   NIGHT FALL LAND - World / Level Manager
-   Supports Levels 1–5, each with unique puzzle rooms
+   NIGHT FALL LAND - High-Fidelity World & Multi-Tier Puzzle Chambers
+   Procedural stone flagstone floors, 3D masonry walls, torch sconces,
+   celestial laser optics, astral cipher pedestals, and cryptic clue lore.
    ========================================================================== */
 
 class World {
   constructor(levelId = 1) {
-    this.width  = 1280;
+    this.width = 1280;
     this.height = 720;
     this.levelId = levelId;
 
-    this.walls   = [];
-    this.blocks  = [];
-    this.plates  = [];
-    this.doors   = [];
-    this.levers  = [];
+    this.walls = [];
+    this.blocks = [];
+    this.plates = [];
+    this.doors = [];
+    this.levers = [];
     this.tablets = [];
-    this.keys    = [];
-    this.shards  = [];
-    this.exit    = null;
+    this.keys = [];
+    this.shards = [];
+    this.exit = null;
 
-    // Total shards in level (for HUD display)
+    // Advanced Mechanics
+    this.torches = [];
+    this.lightEmitters = [];
+    this.quartzMirrors = [];
+    this.lightReceptors = [];
+    this.astralDials = [];
+    this.cipherLocks = [];
+    this.optics = new window.OpticsEngine();
+
     this.totalShards = 1;
+    this.animTime = 0;
 
-    // Build appropriate level
     switch (levelId) {
       case 2:  this.buildMoonVillage();  break;
       case 3:  this.buildOldFactory();   break;
@@ -33,204 +42,253 @@ class World {
   }
 
   /* =========================================================
-     LEVEL 1 — Darkwood: The Awakening  (Tutorial)
-     Teaches: Movement, Tablets, Block-Push, Lever, Key, Exit
+     LEVEL 1 — Darkwood: The Awakening
+     Teaches: Movement, Clue Journal [J], Block Pushing,
+              and the FIRST Celestial Light Beam & Mirror Reflection!
      ========================================================= */
   buildDarkwoodTutorial() {
     this.totalShards = 1;
 
     // ── Outer Boundary ──────────────────────────────────────
     this.walls = [
-      { x: 40,   y: 60,  width: 1200, height: 28  },  // top
-      { x: 40,   y: 632, width: 1200, height: 28  },  // bottom
-      { x: 40,   y: 60,  width: 28,   height: 600 },  // left
-      { x: 1212, y: 60,  width: 28,   height: 600 },  // right
+      { x: 40,   y: 60,  width: 1200, height: 28  },
+      { x: 40,   y: 632, width: 1200, height: 28  },
+      { x: 40,   y: 60,  width: 28,   height: 600 },
+      { x: 1212, y: 60,  width: 28,   height: 600 },
 
-      // ── Divider 1: Room 1 → Room 2 (gap at y 240–380 for door) ──
-      { x: 300, y: 60,  width: 24, height: 180 },
-      { x: 300, y: 380, width: 24, height: 280 },
+      // Divider 1: Room 1 -> Room 2
+      { x: 290, y: 60,  width: 24, height: 200 },
+      { x: 290, y: 380, width: 24, height: 280 },
 
-      // ── Divider 2: Room 2 → Room 3 (gap at y 290–390 for plate door) ──
-      { x: 580, y: 60,  width: 24, height: 230 },
-      { x: 580, y: 390, width: 24, height: 270 },
+      // Divider 2: Room 2 -> Room 3 (Optics Chamber)
+      { x: 600, y: 60,  width: 24, height: 220 },
+      { x: 600, y: 400, width: 24, height: 260 },
 
-      // ── Divider 3: Room 3 → Alcove (gap at y 270–410 for lever door) ──
-      { x: 860, y: 60,  width: 24, height: 210 },
-      { x: 860, y: 410, width: 24, height: 250 },
+      // Divider 3: Room 3 -> Alcove
+      { x: 910, y: 60,  width: 24, height: 210 },
+      { x: 910, y: 410, width: 24, height: 250 },
 
-      // ── Alcove inner wall (closes the south side of the alcove) ──
-      { x: 680, y: 380, width: 180, height: 24 },
+      // Alcove inner wall
+      { x: 740, y: 380, width: 170, height: 24 },
 
-      // ── Divider 4: Alcove → Final Room
-      //    BUG FIX: enclose final golden gate with solid walls
-      //    so player CANNOT walk around the door from top or bottom
-      { x: 1010, y: 60,  width: 24, height: 200 },   // top segment
-      { x: 1010, y: 460, width: 24, height: 200 },   // bottom segment
-      //    The door occupies y:260–380, so gap is exactly 200px tall
-      //    Door: Door(1010, 260, 24, 120) → fills y 260–380, perfect fit
+      // Divider 4: Alcove -> Final Exit Room
+      { x: 1040, y: 60,  width: 24, height: 200 },
+      { x: 1040, y: 460, width: 24, height: 200 },
     ];
 
-    // ── Tablets ─────────────────────────────────────────────
+    // ── Wall Torch Sconces (Amber Ambient Lights) ─────────────
+    this.torches = [
+      { x: 160, y: 88, radius: 120 },
+      { x: 450, y: 88, radius: 120 },
+      { x: 760, y: 88, radius: 130 },
+      { x: 1120, y: 88, radius: 130 },
+      { x: 160, y: 610, radius: 110 },
+      { x: 450, y: 610, radius: 110 },
+      { x: 820, y: 610, radius: 120 },
+      { x: 1120, y: 610, radius: 120 },
+    ];
+
+    // ── Tablets with Clues & Lore ─────────────────────────────
     this.tablets = [
       new window.AncientTablet(
-        180, 160,
-        'Welcome, Wanderer.\n\nYou wake in the eternal darkness of Night Fall Land.\nWalk freely using [W, A, S, D] or Arrow keys.\nWhen near a tablet or object, press [E] to examine it.',
-        'Tablet I: The First Steps'
+        160, 150,
+        'Welcome, Wanderer.\n\nYou wake in the endless twilight of Night Fall Land.\nWalk using [W, A, S, D]. Press [E] to examine tablets and ancient relics.\n\nAll discovered writings are recorded in your Clue Journal. Press [J] at any time to open your Journal.',
+        'Tablet I: The Law of the Codex'
       ),
       new window.AncientTablet(
         420, 140,
-        'Principles of Weight:\n\nWalk directly into stone blocks to push them.\nSlide the glowing block onto the purple pressure plate to lower the energy barrier.',
+        'Principles of Weight:\n\nWalk directly into stone blocks to push them.\nSlide the heavy block onto the purple pressure plate to lower the energy barrier.',
         'Tablet II: Pressure & Mechanisms'
       ),
       new window.AncientTablet(
-        700, 140,
-        'The Ancient Switch:\n\nPress [E] near a lever to pull it.\nThis will deactivate the laser barrier guarding the Golden Moon Key and hidden Moon Shard.',
-        'Tablet III: Levers & Secrets'
+        710, 140,
+        'The First Law of Optics:\n\n"Starlight travels in straight paths until it strikes polished Quartz.\nRotate the mirror crystal [E] to deflect the celestial beam into the crystal receptor.\nOnly light can unseal the Golden Vault."',
+        'Tablet III: Starlight Refraction'
       ),
       new window.AncientTablet(
-        920, 160,
-        'The Moon Archway:\n\nUse your collected Moon Key on the locked golden gate by pressing [E] near it.\nStep onto the glowing exit portal to complete the Darkwood Awakening.',
-        'Tablet IV: The Trial Complete'
+        970, 160,
+        'The Moon Archway:\n\nUse your collected Golden Moon Key on the locked golden gate [E].\nStep onto the celestial exit stargate to advance to the Moon Village.',
+        'Tablet IV: The Gateway'
       ),
     ];
 
-    // ── Pushable Block & Pressure Plate (Room 2) ────────────
+    // ── Room 2: Pushable Block & Pressure Plate ───────────────
     this.blocks = [
       new window.PushBlock(380, 310, 44)
     ];
     this.plates = [
-      new window.PressurePlate(470, 210, 'plate_gate_1', 48)
+      new window.PressurePlate(480, 220, 'plate_gate_1', 48)
     ];
 
-    // ── Doors / Barriers ────────────────────────────────────
-    this.doors = [
-      new window.Door(580, 290, 24, 100, 'plate_gate_1', false),   // [0] plate door
-      new window.Door(860, 270, 24, 140, 'lever_gate_1', false),   // [1] lever door
-      new window.Door(1010, 260, 24, 120, 'locked_exit_gate', true) // [2] key-locked golden gate
+    // ── Room 3: CELESTIAL OPTICS PUZZLE! ─────────────────────
+    // Light Emitter firing DOWN at centerline X=680
+    this.lightEmitters = [
+      new window.LightEmitter(680, 80, 'DOWN', '#00f0ff')
     ];
 
-    // ── Lever (Room 3) ───────────────────────────────────────
+    // Quartz Mirror: Center placed exactly at X=680, Y=320 (top-left x=658, y=298)
+    // Starts at 'NW' (deflects to left / absorbed),
+    // Rotate to 'NE' [E] to deflect starlight DOWN ➔ RIGHT into the receptor!
+    this.quartzMirrors = [
+      new window.QuartzMirror(658, 298, 'NW', 44)
+    ];
+
+    // Light Receptor placed directly on horizontal centerline Y=320 at X=900
+    this.lightReceptors = [
+      new window.LightReceptor(900, 320, 'laser_vault_gate')
+    ];
+
+    // Lever in Room 3 for secondary chamber
     this.levers = [
-      new window.Lever(680, 210, 'lever_gate_1')
+      new window.Lever(780, 200, 'lever_gate_1')
+    ];
+
+    // ── Doors & Barriers ─────────────────────────────────────
+    this.doors = [
+      new window.Door(600, 280, 24, 120, 'plate_gate_1', false),       // plate door
+      new window.Door(910, 270, 24, 140, 'laser_vault_gate', false),   // OPTICS UNLOCKED GATE!
+      new window.Door(1040, 260, 24, 120, 'locked_exit_gate', true)     // Key-locked gate
     ];
 
     // ── Pickups ──────────────────────────────────────────────
-    this.keys   = [ new window.MoonKey(760, 470)   ];
-    this.shards = [ new window.MoonShard(800, 470)  ];
+    this.keys   = [ new window.MoonKey(790, 480) ];
+    this.shards = [ new window.MoonShard(840, 480) ];
 
-    // ── Exit Portal (Room 4) ─────────────────────────────────
-    this.exit = new window.LevelExit(1090, 290, 64, 80);
+    // ── Exit Stargate ────────────────────────────────────────
+    this.exit = new window.LevelExit(1110, 290, 64, 80);
   }
 
   /* =========================================================
-     LEVEL 2 — Moon Village: Echoes of the Forgotten
-     Teaches: Multi-block pushing, combination/order puzzles,
-              reading clue tablets to unlock a 3-switch combo
+     LEVEL 2 — Moon Village: The Astral Cipher
+     Features: 3 Astral Dial Pedestals + 3 Cryptic Riddle Poems
+               + Courtyard Laser Deflection to reach the Inner Sanctum
      ========================================================= */
   buildMoonVillage() {
     this.totalShards = 3;
 
-    // ── Outer Boundary ──────────────────────────────────────
     this.walls = [
       { x: 40,   y: 40,  width: 1200, height: 28 },
       { x: 40,   y: 652, width: 1200, height: 28 },
       { x: 40,   y: 40,  width: 28,   height: 640 },
       { x: 1212, y: 40,  width: 28,   height: 640 },
 
-      // ── Central Courtyard dividers ──
-      // Top corridor wall
-      { x: 280, y: 40,  width: 24, height: 160 },
-      { x: 280, y: 300, width: 24, height: 370 },
+      // West Ruin Divider
+      { x: 280, y: 40,  width: 24, height: 180 },
+      { x: 280, y: 320, width: 24, height: 350 },
 
-      // Mid section split
-      { x: 560, y: 40,  width: 24, height: 200 },
-      { x: 560, y: 360, width: 24, height: 170 },
-      { x: 560, y: 560, width: 24, height: 110 },
+      // Central Plaza Split
+      { x: 580, y: 40,  width: 24, height: 220 },
+      { x: 580, y: 400, width: 24, height: 270 },
 
-      // Right corridor
-      { x: 840, y: 40,  width: 24, height: 250 },
-      { x: 840, y: 450, width: 24, height: 220 },
+      // East Vault Divider
+      { x: 880, y: 40,  width: 24, height: 260 },
+      { x: 880, y: 450, width: 24, height: 220 },
 
-      // Treasure alcove
-      { x: 1050, y: 40,  width: 24, height: 280 },
-      { x: 1050, y: 480, width: 24, height: 192 },
+      // Inner Temple Room
+      { x: 1060, y: 40,  width: 24, height: 280 },
+      { x: 1060, y: 480, width: 24, height: 192 },
 
-      // Horizontal separators
-      { x: 280,  y: 200, width: 280, height: 24 },
-      { x: 840,  y: 320, width: 210, height: 24 },
+      // Horizontal dividers
+      { x: 280, y: 220, width: 300, height: 24 },
+      { x: 880, y: 340, width: 180, height: 24 },
     ];
 
-    // ── Tablets (clue: levers must be pulled in order: A, C, B) ──
+    this.torches = [
+      { x: 150, y: 68, radius: 120 },
+      { x: 430, y: 68, radius: 120 },
+      { x: 730, y: 68, radius: 130 },
+      { x: 980, y: 68, radius: 130 },
+      { x: 150, y: 630, radius: 110 },
+      { x: 430, y: 630, radius: 110 },
+      { x: 730, y: 630, radius: 120 },
+      { x: 1130, y: 630, radius: 130 },
+    ];
+
+    // ── Cryptic Riddle Inscriptions (Recorded in Clue Journal [J]) ──
     this.tablets = [
       new window.AncientTablet(
-        150, 120,
-        'Moon Village Codex:\n\nThree ancient switches seal the village gate.\nThe elders wrote: "Pull the Western torch first, then the Eastern fire, and last the Central flame."\nPull them in the correct order.',
-        'Codex: The Three Flames'
+        140, 110,
+        'Moon Village Verse I:\n\n"When the darkness swallowed the sky forty-seven years ago, the first phenomenon observed was the VOID ECLIPSE.\nSet the Western Pillar to the symbol of the shadowed orb."',
+        'Poem: The First Omen'
       ),
       new window.AncientTablet(
-        400, 100,
-        'A crumbled note reads:\n\n"First: West. Then: East. Finally: Center. The gate will accept only the sacred order."\n\nHint: look for markings W / E / C on the lever pedestals.',
-        'Faded Note'
+        420, 100,
+        'Moon Village Verse II:\n\n"In the pitch black between dusk and midnight, no torch could illuminate the path.\nOnly the solitary STAR pierced the eternal gloom.\nSet the Central Pillar to the Starlight Astra."',
+        'Poem: The Lonely Beacon'
       ),
       new window.AncientTablet(
-        700, 100,
-        'A stone etching:\n\nThe pressure plates in this chamber can be activated by stone blocks OR by standing on them yourself.',
-        'Etching: Weight & Balance'
+        720, 100,
+        'Moon Village Verse III:\n\n"When the ancient ancestors prayed for light, the sky offered only a razor sliver: the MOON CRESCENT.\nSet the Eastern Pillar to the Crescent of Dawn."',
+        'Poem: The Sliver of Hope'
       ),
       new window.AncientTablet(
-        920, 80,
-        'Moon Shard Cache:\n\nThree shards were hidden by the last village elder:\n• One near the well (south)\n• One behind the sealed gate\n• One in the treasure alcove',
-        'Cache Map'
+        950, 80,
+        'Sanctum Note:\n\n"The Inner Sanctum gate requires dual alignment:\n1. The 3 Astral Dials must resonate: [ECLIPSE, STAR, CRESCENT].\n2. The celestial beam must be deflected through the quartz prism into the Sun Eye."',
+        'Temple Master Inscription'
       ),
     ];
 
-    // ── Blocks & Plates ──────────────────────────────────────
+    // ── 3 Astral Dial Pedestals ──────────────────────────────
+    // Dial 1: West (id: 'dial_w'), Target: 'ECLIPSE'
+    // Dial 2: Center (id: 'dial_c'), Target: 'STAR'
+    // Dial 3: East (id: 'dial_e'), Target: 'CRESCENT'
+    this.astralDials = [
+      new window.AstralDial(210, 380, 'dial_w', ['SUN', 'HALF_MOON', 'ECLIPSE', 'STAR', 'CRESCENT'], 0),
+      new window.AstralDial(440, 480, 'dial_c', ['SUN', 'HALF_MOON', 'ECLIPSE', 'STAR', 'CRESCENT'], 1),
+      new window.AstralDial(730, 480, 'dial_e', ['SUN', 'HALF_MOON', 'ECLIPSE', 'STAR', 'CRESCENT'], 0),
+    ];
+
+    this.cipherLocks = [
+      new window.CipherLock(
+        'cipher_temple_gate',
+        ['dial_w', 'dial_c', 'dial_e'],
+        ['ECLIPSE', 'STAR', 'CRESCENT']
+      )
+    ];
+
+    // ── Pushable Blocks & Plates ─────────────────────────────
     this.blocks = [
-      new window.PushBlock(160,  380, 44),   // block A – near south plate
-      new window.PushBlock(420,  400, 44),   // block B – mid area
-      new window.PushBlock(650,  300, 44),   // block C – right section
+      new window.PushBlock(180, 480, 44),
+      new window.PushBlock(420, 360, 44),
     ];
     this.plates = [
-      new window.PressurePlate(160, 500, 'plate_south', 48),
-      new window.PressurePlate(440, 550, 'plate_mid',   48),
+      new window.PressurePlate(180, 560, 'plate_ruins_1', 48),
     ];
 
-    // ── Ordered Levers: must activate West→East→Center ────────
-    // Managed via the OrderedLeverGroup helper (stored in levers array)
-    this.levers = [
-      new window.Lever(310, 120, 'lever_west'),    // lever W
-      new window.Lever(870, 120, 'lever_east'),    // lever E
-      new window.Lever(600, 130, 'lever_center'),  // lever C
+    // ── Optics Beam & Quartz Mirror in Central Courtyard ─────
+    this.lightEmitters = [
+      new window.LightEmitter(660, 80, 'DOWN', '#00f0ff')
+    ];
+    this.quartzMirrors = [
+      new window.QuartzMirror(638, 288, 'NW', 44),
+      new window.QuartzMirror(758, 288, 'SE', 44),
+    ];
+    this.lightReceptors = [
+      new window.LightReceptor(860, 310, 'optics_sanctum_door')
     ];
 
-    // Attach ordered logic: west → east → center → gate opens
-    this._leverOrder  = ['lever_west', 'lever_east', 'lever_center'];
-    this._leverProgress = 0; // how many in sequence have been correctly pulled
-
-    // ── Doors ──────────────────────────────────────────────
+    // ── Doors ────────────────────────────────────────────────
     this.doors = [
-      new window.Door(560, 200, 24, 160, 'plate_south',  false),  // plate opens mid door
-      new window.Door(840, 250, 24, 200, 'lever_seq',    false),  // lever-sequence gate
-      new window.Door(1050, 280, 24, 200, 'plate_mid',   false),  // treasure alcove door
+      new window.Door(280, 240, 24, 100, 'plate_ruins_1', false),
+      new window.Door(580, 240, 24, 160, 'cipher_temple_gate', false),   // Unlocked by 3 Astral Dials!
+      new window.Door(880, 270, 24, 180, 'optics_sanctum_door', false),  // Unlocked by Light Beam reflection!
+      new window.Door(1060, 300, 24, 180, 'locked_village_exit', true)   // Key-locked
     ];
 
     // ── Pickups ──────────────────────────────────────────────
-    this.keys   = [ new window.MoonKey(620, 560)  ];
+    this.keys   = [ new window.MoonKey(950, 480) ];
     this.shards = [
-      new window.MoonShard(200,  540),   // south shard
-      new window.MoonShard(920,  380),   // behind gate shard
-      new window.MoonShard(1100, 150),   // alcove shard
+      new window.MoonShard(220, 560),
+      new window.MoonShard(780, 560),
+      new window.MoonShard(1120, 160),
     ];
 
-    // ── Exit ─────────────────────────────────────────────────
-    this.exit = new window.LevelExit(1100, 340, 64, 80);
+    this.exit = new window.LevelExit(1120, 360, 64, 80);
   }
 
   /* =========================================================
-     LEVEL 3 — Old Factory: Conveyors and Currents
-     Teaches: Multi-step sequences, conveyor rails concept
-              (here simulated by "chained" pressure plates that
-               must ALL be activated simultaneously)
+     LEVEL 3 — Old Factory: The Prism Circuit
+     Features: 4 Multi-Plate Generators + Complex Optical Routing
      ========================================================= */
   buildOldFactory() {
     this.totalShards = 4;
@@ -241,87 +299,109 @@ class World {
       { x: 40,   y: 40,  width: 24,   height: 640 },
       { x: 1216, y: 40,  width: 24,   height: 640 },
 
-      // Factory floor grid walls
+      // Factory grid columns
       { x: 260, y: 40,  width: 24, height: 180 },
       { x: 260, y: 340, width: 24, height: 340 },
 
-      { x: 520, y: 40,  width: 24, height: 280 },
+      { x: 520, y: 40,  width: 24, height: 260 },
       { x: 520, y: 440, width: 24, height: 240 },
 
-      { x: 780, y: 40,  width: 24, height: 300 },
+      { x: 780, y: 40,  width: 24, height: 280 },
       { x: 780, y: 500, width: 24, height: 180 },
 
-      { x: 1020, y: 40,  width: 24, height: 200 },
+      { x: 1020, y: 40,  width: 24, height: 220 },
       { x: 1020, y: 480, width: 24, height: 200 },
 
-      // Horizontal corridors
-      { x: 260,  y: 160, width: 260, height: 24 },
-      { x: 520,  y: 420, width: 260, height: 24 },
-      { x: 780,  y: 240, width: 240, height: 24 },
+      // Horizontal dividers
+      { x: 260, y: 160, width: 260, height: 24 },
+      { x: 520, y: 400, width: 260, height: 24 },
+      { x: 780, y: 240, width: 240, height: 24 },
+    ];
+
+    this.torches = [
+      { x: 140, y: 68, radius: 110 },
+      { x: 400, y: 68, radius: 120 },
+      { x: 660, y: 68, radius: 120 },
+      { x: 920, y: 68, radius: 120 },
+      { x: 140, y: 630, radius: 110 },
+      { x: 400, y: 630, radius: 120 },
+      { x: 660, y: 630, radius: 120 },
+      { x: 1120, y: 630, radius: 130 },
     ];
 
     this.tablets = [
       new window.AncientTablet(
-        130, 120,
-        'Factory Control Manual:\n\nThis machine requires ALL FOUR generator plates to be weighted simultaneously before the master switch will engage.\n\nPush a stone block onto each glowing plate.',
-        'Manual: Generator Array'
+        130, 110,
+        'Factory Power Schematic:\n\n"The master steam turbine requires dual power feeds:\n1. All generator plates must bear stone weight.\n2. The optical conduit must be redirected around the blast barrier into Receptor Gamma."',
+        'Schematic: Primary Turbine'
       ),
       new window.AncientTablet(
-        350, 80,
-        'Warning:\n\nBlocks that fall into the pit shafts are LOST permanently.\nIf you run out of blocks, press [R] to reset the room.',
-        'Safety Notice'
+        360, 80,
+        'Shift Supervisor Log:\n\n"Warning: Quartz mirrors can be slid along the concrete floor and rotated 90 degrees [E]. Do not allow the laser beam to strike the fuel tanks!"',
+        'Shift Log'
       ),
       new window.AncientTablet(
-        680, 80,
-        'Electrical Diagram:\n\nOnce all four generator plates are active, the power coupling door will open and the exit will energise.\n\nShards are hidden in maintenance alcoves.',
-        'Wiring Diagram'
+        660, 80,
+        'Electrical Diagram:\n\n"Master Power door opens only when the master switch is energized AND Receptor Gamma receives continuous starlight."',
+        'Electrical Blueprints'
       ),
       new window.AncientTablet(
         880, 80,
-        'Chief Engineer\'s Note:\n\n"The fourth generator is tricky — push the block from the SOUTH side only or it will miss the plate."',
-        'Engineer\'s Note'
+        'Foreman\'s Clue:\n\n"Look for the alignment arrows on the floor. Two quartz mirrors are required to deflect the beam in a zigzag around the middle partition."',
+        'Foreman\'s Scratchpad'
       ),
     ];
 
-    // Four blocks, four plates — all must be pressed simultaneously
     this.blocks = [
-      new window.PushBlock(130,  300, 44),
-      new window.PushBlock(130,  380, 44),
-      new window.PushBlock(390,  300, 44),
-      new window.PushBlock(600,  500, 44),
+      new window.PushBlock(120, 280, 44),
+      new window.PushBlock(120, 360, 44),
+      new window.PushBlock(380, 300, 44),
+      new window.PushBlock(600, 500, 44),
     ];
+
     this.plates = [
-      new window.PressurePlate(180, 460, 'gen_1', 44),
+      new window.PressurePlate(170, 460, 'gen_1', 44),
       new window.PressurePlate(370, 500, 'gen_2', 44),
-      new window.PressurePlate(640, 300, 'gen_3', 44),
-      new window.PressurePlate(860, 480, 'gen_4', 44),
+      new window.PressurePlate(640, 320, 'gen_3', 44),
+      new window.PressurePlate(870, 480, 'gen_4', 44),
+    ];
+
+    // Optical Beam Routing with 2 Quartz Mirrors
+    this.lightEmitters = [
+      new window.LightEmitter(320, 80, 'DOWN', '#00f0ff')
+    ];
+    this.quartzMirrors = [
+      new window.QuartzMirror(298, 218, 'NE', 44),
+      new window.QuartzMirror(438, 218, 'SE', 44),
+    ];
+    this.lightReceptors = [
+      new window.LightReceptor(760, 240, 'factory_optical_gate')
     ];
 
     this.levers = [
       new window.Lever(840, 120, 'master_switch'),
     ];
 
-    // Master gate opens only when all generators + switch active
     this.doors = [
-      new window.Door(780, 300, 24, 200, 'gen_1_2', false),   // half-power door
-      new window.Door(1020, 200, 24, 280, 'master_power', false), // master door
+      new window.Door(520, 260, 24, 140, 'gen_1', false),
+      new window.Door(780, 280, 24, 220, 'factory_optical_gate', false),
+      new window.Door(1020, 220, 24, 260, 'master_power', false),
     ];
 
-    this.keys   = [ new window.MoonKey(1060, 380)   ];
+    this.keys   = [ new window.MoonKey(1060, 380) ];
     this.shards = [
-      new window.MoonShard(300,  540),
-      new window.MoonShard(550,  540),
-      new window.MoonShard(820,  550),
+      new window.MoonShard(290, 540),
+      new window.MoonShard(550, 540),
+      new window.MoonShard(820, 550),
       new window.MoonShard(1080, 560),
     ];
 
-    this.exit = new window.LevelExit(1100, 300, 64, 80);
+    this.exit = new window.LevelExit(1110, 300, 64, 80);
   }
 
   /* =========================================================
-     LEVEL 4 — Frozen Peak: Thermal Equilibrium
-     Teaches: Multi-block coordination, thinking several moves
-              ahead, using blocks as bridges over "ice gaps"
+     LEVEL 4 — Frozen Peak: The Thermal Riddle
+     Features: Thermal Laser Melting, Cryo-Mirrors, Astral Dials
      ========================================================= */
   buildFrozenPeak() {
     this.totalShards = 5;
@@ -332,84 +412,106 @@ class World {
       { x: 40,   y: 40,  width: 24,   height: 640 },
       { x: 1216, y: 40,  width: 24,   height: 640 },
 
-      // Frozen canyon walls
-      { x: 200,  y: 40,  width: 24, height: 560 },
-      { x: 400,  y: 120, width: 24, height: 220 },
-      { x: 400,  y: 460, width: 24, height: 220 },
-      { x: 600,  y: 40,  width: 24, height: 280 },
-      { x: 600,  y: 440, width: 24, height: 240 },
-      { x: 800,  y: 40,  width: 24, height: 320 },
-      { x: 800,  y: 520, width: 24, height: 160 },
-      { x: 1000, y: 40,  width: 24, height: 260 },
-      { x: 1000, y: 500, width: 24, height: 180 },
+      // Glacier canyon walls
+      { x: 220,  y: 40,  width: 24, height: 560 },
+      { x: 420,  y: 120, width: 24, height: 220 },
+      { x: 420,  y: 460, width: 24, height: 220 },
+      { x: 620,  y: 40,  width: 24, height: 280 },
+      { x: 620,  y: 440, width: 24, height: 240 },
+      { x: 820,  y: 40,  width: 24, height: 320 },
+      { x: 820,  y: 520, width: 24, height: 160 },
+      { x: 1020, y: 40,  width: 24, height: 260 },
+      { x: 1020, y: 500, width: 24, height: 180 },
 
-      // Ice shelf platforms (horizontal)
-      { x: 200, y: 340, width: 200, height: 24 },
-      { x: 600, y: 420, width: 200, height: 24 },
-      { x: 800, y: 320, width: 200, height: 24 },
+      // Ice platforms
+      { x: 220, y: 340, width: 200, height: 24 },
+      { x: 620, y: 420, width: 200, height: 24 },
+      { x: 820, y: 320, width: 200, height: 24 },
+    ];
 
-      // Ice gap indicators (thin walls creating gaps)
-      { x: 400, y: 340, width: 200, height: 24 },
+    this.torches = [
+      { x: 130, y: 68, radius: 110 },
+      { x: 330, y: 68, radius: 120 },
+      { x: 530, y: 68, radius: 120 },
+      { x: 730, y: 68, radius: 120 },
+      { x: 930, y: 68, radius: 120 },
+      { x: 130, y: 630, radius: 110 },
+      { x: 530, y: 630, radius: 120 },
+      { x: 1120, y: 630, radius: 130 },
     ];
 
     this.tablets = [
-      new window.AncientTablet(100, 120,
-        'Frozen Peak Archive:\n\nThe ice bridges here are unstable. Move stone blocks into the "gap slots" (marked with blue arrows) to create safe paths across.\n\nNote: blocks slide slightly on ice — plan ahead!',
-        'Archive: Ice Bridges'),
-      new window.AncientTablet(280, 80,
-        'Bridge Tip:\n\nA block pushed into a gap will STOP at the far edge if a wall is there. Use this to place blocks precisely in narrow slots.',
-        'Bridge Mechanics'),
-      new window.AncientTablet(660, 80,
-        'Thermal Control:\n\nFire (red) plates generate heat — they melt ice barriers when pressure is applied. Ice (blue) plates must remain UNWEIGHTED to keep cryo-gates sealed.',
-        'Thermal Systems'),
-      new window.AncientTablet(880, 80,
-        'Peak Summit Note:\n\n"Five shards were frozen into the glacier by the mountain spirit. Each one glows where the ice is thinnest."',
-        'Summit Note'),
-      new window.AncientTablet(1060, 120,
-        'Final Gate:\n\nThe summit gate opens only when BOTH pressure plates glow simultaneously. Coordinate your blocks carefully.',
-        'Gate Mechanism'),
+      new window.AncientTablet(
+        100, 110,
+        'Frozen Peak Codex:\n\n"The mountain spirit locked the summit behind the Twin Runes of Heaven.\nSet the Peak Dial to the SUN of Eternal Fire, and the Valley Dial to the HALF MOON of Equilibrium."',
+        'Archive: The Twin Runes'
+      ),
+      new window.AncientTablet(
+        280, 80,
+        'Cryo-Optics Note:\n\n"The thermal starlight beam can melt ice-sealed gates when routed across the canyon chasms.\nAlign the quartz mirror to redirect the beam eastward."',
+        'Glacier Observation'
+      ),
+      new window.AncientTablet(
+        660, 80,
+        'Summit Inscription:\n\n"Both summit pressure plates must be weighted simultaneously with stone blocks to disengage the final cryo-gate."',
+        'Summit Gates'
+      ),
+    ];
+
+    this.astralDials = [
+      new window.AstralDial(130, 480, 'dial_peak_1', ['CRESCENT', 'STAR', 'SUN', 'ECLIPSE'], 0),
+      new window.AstralDial(340, 480, 'dial_peak_2', ['ECLIPSE', 'HALF_MOON', 'STAR', 'SUN'], 0),
+    ];
+
+    this.cipherLocks = [
+      new window.CipherLock('cipher_glacier_gate', ['dial_peak_1', 'dial_peak_2'], ['SUN', 'HALF_MOON'])
     ];
 
     this.blocks = [
-      new window.PushBlock(100,  300, 44),
-      new window.PushBlock(100,  380, 44),
-      new window.PushBlock(260,  200, 44),
-      new window.PushBlock(260,  280, 44),
-      new window.PushBlock(450,  200, 44),
+      new window.PushBlock(120, 260, 44),
+      new window.PushBlock(120, 340, 44),
+      new window.PushBlock(320, 200, 44),
+      new window.PushBlock(500, 200, 44),
     ];
+
     this.plates = [
-      new window.PressurePlate(450, 480, 'cryo_a', 48),
-      new window.PressurePlate(650, 480, 'cryo_b', 48),
       new window.PressurePlate(870, 400, 'summit_a', 48),
       new window.PressurePlate(870, 480, 'summit_b', 48),
     ];
 
-    this.levers = [
-      new window.Lever(670, 120, 'thermal_switch'),
+    this.lightEmitters = [
+      new window.LightEmitter(480, 80, 'DOWN', '#00f0ff')
+    ];
+    this.quartzMirrors = [
+      new window.QuartzMirror(458, 258, 'NW', 44),
+    ];
+    this.lightReceptors = [
+      new window.LightReceptor(600, 280, 'cryo_thermal_door')
     ];
 
     this.doors = [
-      new window.Door(400, 340, 24, 120, 'cryo_a', false),
-      new window.Door(600, 280, 24, 160, 'cryo_b', false),
-      new window.Door(800, 320, 24, 200, 'thermal_switch', false),
-      new window.Door(1000, 260, 24, 240, 'summit_both', false),
+      new window.Door(220, 240, 24, 100, 'cipher_glacier_gate', false),
+      new window.Door(420, 340, 24, 120, 'cryo_thermal_door', false),
+      new window.Door(620, 280, 24, 160, 'plate_ruins', false),
+      new window.Door(1020, 260, 24, 240, 'summit_both', false),
     ];
 
-    this.keys   = [ new window.MoonKey(1050, 400)  ];
+    this.keys   = [ new window.MoonKey(1050, 400) ];
     this.shards = [
-      new window.MoonShard(160,  500),
-      new window.MoonShard(480,  530),
-      new window.MoonShard(700,  530),
-      new window.MoonShard(880,  560),
+      new window.MoonShard(160, 520),
+      new window.MoonShard(480, 530),
+      new window.MoonShard(700, 530),
+      new window.MoonShard(880, 560),
       new window.MoonShard(1060, 560),
     ];
 
-    this.exit = new window.LevelExit(1090, 310, 64, 80);
+    this.exit = new window.LevelExit(1100, 310, 64, 80);
   }
 
   /* =========================================================
-     LEVEL 5 — The Void: Beyond the Shadow (Master)
-     Teaches: Combines ALL mechanics; requires logical mastery
+     LEVEL 5 — The Void: The Grand Alignment (Master)
+     Features: All Mechanics Combined: Multi-Mirror Optics,
+               4 Astral Dials, Chained Plates, Cryptic Cosmological Riddle
      ========================================================= */
   buildTheVoid() {
     this.totalShards = 6;
@@ -420,131 +522,154 @@ class World {
       { x: 40,   y: 40,  width: 24,   height: 640 },
       { x: 1216, y: 40,  width: 24,   height: 640 },
 
-      // Void labyrinth walls
-      { x: 160,  y: 40,  width: 24, height: 200 },
-      { x: 160,  y: 380, width: 24, height: 300 },
-      { x: 320,  y: 160, width: 24, height: 160 },
-      { x: 320,  y: 460, width: 24, height: 220 },
-      { x: 480,  y: 40,  width: 24, height: 260 },
-      { x: 480,  y: 400, width: 24, height: 280 },
-      { x: 640,  y: 120, width: 24, height: 200 },
-      { x: 640,  y: 440, width: 24, height: 240 },
-      { x: 800,  y: 40,  width: 24, height: 300 },
-      { x: 800,  y: 500, width: 24, height: 180 },
-      { x: 960,  y: 140, width: 24, height: 220 },
-      { x: 960,  y: 480, width: 24, height: 200 },
-      { x: 1100, y: 40,  width: 24, height: 260 },
-      { x: 1100, y: 500, width: 24, height: 180 },
+      // Void labyrinth partitions
+      { x: 180,  y: 40,  width: 24, height: 200 },
+      { x: 180,  y: 380, width: 24, height: 300 },
+      { x: 360,  y: 160, width: 24, height: 160 },
+      { x: 360,  y: 460, width: 24, height: 220 },
+      { x: 540,  y: 40,  width: 24, height: 260 },
+      { x: 540,  y: 400, width: 24, height: 280 },
+      { x: 720,  y: 120, width: 24, height: 200 },
+      { x: 720,  y: 440, width: 24, height: 240 },
+      { x: 900,  y: 40,  width: 24, height: 300 },
+      { x: 900,  y: 500, width: 24, height: 180 },
+      { x: 1080, y: 140, width: 24, height: 220 },
+      { x: 1080, y: 480, width: 24, height: 200 },
 
-      // Horizontal void barriers
-      { x: 160, y: 200,  width: 160, height: 24 },
-      { x: 160, y: 540,  width: 160, height: 24 },
-      { x: 480, y: 280,  width: 160, height: 24 },
-      { x: 640, y: 540,  width: 160, height: 24 },
-      { x: 800, y: 380,  width: 160, height: 24 },
-      { x: 960, y: 260,  width: 140, height: 24 },
+      // Horizontal void bars
+      { x: 180, y: 200, width: 180, height: 24 },
+      { x: 540, y: 280, width: 180, height: 24 },
+      { x: 720, y: 520, width: 180, height: 24 },
+    ];
+
+    this.torches = [
+      { x: 110, y: 68, radius: 120 },
+      { x: 300, y: 68, radius: 120 },
+      { x: 630, y: 68, radius: 120 },
+      { x: 810, y: 68, radius: 120 },
+      { x: 1000, y: 68, radius: 120 },
+      { x: 110, y: 630, radius: 110 },
+      { x: 450, y: 630, radius: 120 },
+      { x: 810, y: 630, radius: 120 },
+      { x: 1140, y: 630, radius: 130 },
     ];
 
     this.tablets = [
-      new window.AncientTablet(90, 100,
-        'The Void speaks:\n\n"Forget everything — and remember everything.\nEvery law you learned in the dark will serve you here.\nBlocks, plates, levers, keys, order — all at once."\n\nThis is the final trial.',
-        'Voice of the Void'),
-      new window.AncientTablet(260, 80,
-        'Void Codex I:\n\nThree levers must be pulled in reverse order: C → B → A.\nOnly then will the first void seal break.',
-        'Codex I'),
-      new window.AncientTablet(540, 80,
-        'Void Codex II:\n\nTwo blocks must rest on their plates simultaneously to open the central gate. Placing one will shift the other — think ahead.',
-        'Codex II'),
-      new window.AncientTablet(700, 80,
-        'Void Codex III:\n\nThe key to the final gate is behind the second void seal. The second seal opens only when ALL plates are active.',
-        'Codex III'),
-      new window.AncientTablet(860, 80,
-        'Void Codex IV:\n\nSix shards float in the void. Collect them all before reaching the exit — they cannot be retrieved once the portal activates.',
-        'Codex IV'),
-      new window.AncientTablet(1060, 100,
-        'Last Message:\n\n"You who reach this point have proven that knowledge truly is the greatest ability.\nStep through — and bring the light back to Night Fall Land."',
-        'The Final Message'),
+      new window.AncientTablet(
+        90, 100,
+        'Voice of the Void:\n\n"To unlock the celestial gates, you must align the 4 Pillars of Eternity:\nI. The Star that witnessed the fall [STAR]\nII. The Sun that was banished [SUN]\nIII. The Crescent that survived [CRESCENT]\nIV. The Void that consumed all [ECLIPSE]"',
+        'Codex of Eternity'
+      ),
+      new window.AncientTablet(
+        420, 80,
+        'Void Optics Inscription:\n\n"The Master Crystal Eye in the Sanctum must be illuminated by a continuous laser beam reflected through 3 quartz mirrors around the labyrinth."',
+        'Optics Codex'
+      ),
+      new window.AncientTablet(
+        780, 80,
+        'Final Revelation:\n\n"Observation and knowledge conquer all darkness. Turn the pillars, route the light, weight the plates, and take back the sun."',
+        'The Final Message'
+      ),
     ];
 
+    // 4 Astral Dials
+    this.astralDials = [
+      new window.AstralDial(100, 360, 'void_d1', ['ECLIPSE', 'STAR', 'CRESCENT', 'SUN'], 0),
+      new window.AstralDial(100, 440, 'void_d2', ['ECLIPSE', 'STAR', 'CRESCENT', 'SUN'], 1),
+      new window.AstralDial(280, 360, 'void_d3', ['ECLIPSE', 'STAR', 'CRESCENT', 'SUN'], 0),
+      new window.AstralDial(280, 440, 'void_d4', ['ECLIPSE', 'STAR', 'CRESCENT', 'SUN'], 2),
+    ];
+
+    this.cipherLocks = [
+      new window.CipherLock(
+        'void_cipher_door',
+        ['void_d1', 'void_d2', 'void_d3', 'void_d4'],
+        ['STAR', 'SUN', 'CRESCENT', 'ECLIPSE']
+      )
+    ];
+
+    // Blocks & Plates
     this.blocks = [
-      new window.PushBlock(90,  350, 44),
-      new window.PushBlock(90,  430, 44),
-      new window.PushBlock(350, 200, 44),
-      new window.PushBlock(350, 500, 44),
-      new window.PushBlock(550, 350, 44),
+      new window.PushBlock(420, 200, 44),
+      new window.PushBlock(420, 500, 44),
+      new window.PushBlock(600, 350, 44),
     ];
     this.plates = [
-      new window.PressurePlate(200, 300, 'void_p1', 44),
-      new window.PressurePlate(200, 460, 'void_p2', 44),
-      new window.PressurePlate(430, 320, 'void_p3', 44),
-      new window.PressurePlate(700, 340, 'void_p4', 44),
-      new window.PressurePlate(880, 560, 'void_p5', 44),
+      new window.PressurePlate(450, 340, 'void_p1', 44),
+      new window.PressurePlate(800, 360, 'void_p2', 44),
     ];
 
-    this.levers = [
-      new window.Lever(360,  90, 'void_lever_a'),
-      new window.Lever(660, 400, 'void_lever_b'),
-      new window.Lever(500, 490, 'void_lever_c'),
+    // Laser Optics with 3 Quartz Mirrors
+    this.lightEmitters = [
+      new window.LightEmitter(630, 80, 'DOWN', '#00f0ff')
     ];
-
-    // Lever sequence: C → B → A (tracked via _leverOrder)
-    this._leverOrder    = ['void_lever_c', 'void_lever_b', 'void_lever_a'];
-    this._leverProgress = 0;
+    this.quartzMirrors = [
+      new window.QuartzMirror(608, 198, 'NW', 44),
+      new window.QuartzMirror(788, 198, 'SE', 44),
+      new window.QuartzMirror(788, 438, 'NE', 44),
+    ];
+    this.lightReceptors = [
+      new window.LightReceptor(1050, 460, 'void_laser_gate')
+    ];
 
     this.doors = [
-      new window.Door(160, 200, 24, 180, 'void_lever_seq', false),   // first seal
-      new window.Door(480, 300, 24, 100, 'void_p1',        false),
-      new window.Door(640, 320, 24, 120, 'void_p3',        false),
-      new window.Door(800, 380, 24, 120, 'void_all_plates', false),   // central gate
-      new window.Door(960, 380, 24, 100, 'void_p4',        false),
-      new window.Door(1100, 260, 24, 240, 'void_final', true),        // key-locked final gate
+      new window.Door(180, 240, 24, 140, 'void_cipher_door', false),
+      new window.Door(540, 300, 24, 100, 'void_p1', false),
+      new window.Door(720, 320, 24, 120, 'void_laser_gate', false),
+      new window.Door(900, 380, 24, 120, 'void_p2', false),
+      new window.Door(1080, 280, 24, 200, 'void_final_key', true),
     ];
 
-    this.keys   = [ new window.MoonKey(840, 420)   ];
+    this.keys   = [ new window.MoonKey(960, 440) ];
     this.shards = [
-      new window.MoonShard(200,  580),
-      new window.MoonShard(400,  540),
-      new window.MoonShard(560,  300),
-      new window.MoonShard(720,  560),
-      new window.MoonShard(900,  200),
-      new window.MoonShard(1130, 400),
+      new window.MoonShard(240, 580),
+      new window.MoonShard(440, 580),
+      new window.MoonShard(640, 320),
+      new window.MoonShard(820, 580),
+      new window.MoonShard(980, 200),
+      new window.MoonShard(1140, 400),
     ];
 
-    this.exit = new window.LevelExit(1130, 320, 64, 80);
+    this.exit = new window.LevelExit(1140, 320, 64, 80);
   }
 
   /* =========================================================
      UPDATE
      ========================================================= */
   update(dt, player, audio) {
-    // Update blocks
-    for (const b of this.blocks) {
-      b.update(dt, this);
-    }
+    this.animTime += dt;
 
-    // Update pressure plates
-    for (const p of this.plates) {
-      p.update(player, this.blocks, audio);
-    }
+    // 1. Update Blocks
+    for (const b of this.blocks) b.update(dt, this);
 
-    // Handle ordered lever sequences (Levels 2 & 5)
-    if (this._leverOrder) {
-      this._updateLeverSequence(audio);
-    }
+    // 2. Update Quartz Mirrors
+    for (const m of this.quartzMirrors) m.update(dt, this);
 
-    // Update doors
-    for (const d of this.doors) {
-      d.update(this.plates, this.levers, player);
-    }
+    // 3. Update Astral Dials
+    for (const d of this.astralDials) d.update(dt);
 
-    // Special multi-plate checks for compound doors
+    // 4. Update Pressure Plates
+    for (const p of this.plates) p.update(player, this.blocks, audio);
+
+    // 5. Update Light Emitters
+    for (const e of this.lightEmitters) e.update(dt);
+
+    // 6. Update Optics Engine (Traces laser reflections & powers receptors)
+    this.optics.update(this, dt, audio);
+
+    // 7. Update Cipher Locks
+    for (const lock of this.cipherLocks) lock.update(this.astralDials, this.doors, audio);
+
+    // 8. Update Doors
+    for (const d of this.doors) d.update(this.plates, this.levers, player);
+
+    // 9. Special compound doors
     this._updateCompoundDoors();
 
-    // Pickup updates
+    // 10. Update Pickups & Exit
     for (const k of this.keys)   k.update(dt);
     for (const s of this.shards) s.update(dt);
 
-    // Exit portal
     if (this.exit) {
       this.exit.update(dt);
       if (this.checkOverlap(player, this.exit)) {
@@ -555,80 +680,29 @@ class World {
     }
   }
 
-  /** Lever-sequence logic: track order of lever activations */
-  _updateLeverSequence(audio) {
-    for (let i = 0; i < this.levers.length; i++) {
-      const lev = this.levers[i];
-      if (!lev._prevIsOn && lev.isOn) {
-        // Just flipped ON — check if it's the next in sequence
-        const expectedId = this._leverOrder[this._leverProgress];
-        if (lev.id === expectedId) {
-          this._leverProgress++;
-          if (window.screenManager) {
-            window.screenManager.showToast(
-              `Mechanism ${this._leverProgress}/${this._leverOrder.length} engaged...`,
-              'info'
-            );
-          }
-        } else {
-          // Wrong order — reset all levers
-          this._leverProgress = 0;
-          for (const l of this.levers) l.isOn = false;
-          if (window.screenManager) {
-            window.screenManager.showToast('The mechanisms reset — try the correct order!', 'error');
-          }
-        }
-      }
-      if (lev._prevIsOn && !lev.isOn) {
-        // Turned OFF — reset sequence
-        this._leverProgress = 0;
-      }
-      lev._prevIsOn = lev.isOn;
-    }
-
-    // Mark the sequence door as open when progress is complete
-    const seqDone = this._leverProgress >= this._leverOrder.length;
-    for (const d of this.doors) {
-      if (d.linkedId === 'lever_seq' || d.linkedId === 'void_lever_seq') {
-        d.isOpen = seqDone;
-      }
-    }
-  }
-
-  /** Compound doors that need ALL plates pressed or custom combos */
   _updateCompoundDoors() {
-    // Level 3: "gen_1_2" door — needs gen_1 AND gen_2 pressed
-    const gen1 = this.plates.find(p => p.id === 'gen_1');
-    const gen2 = this.plates.find(p => p.id === 'gen_2');
-    const masterLever = this.levers.find(l => l.id === 'master_switch');
-    const gen3 = this.plates.find(p => p.id === 'gen_3');
-    const gen4 = this.plates.find(p => p.id === 'gen_4');
-
-    for (const d of this.doors) {
-      if (d.linkedId === 'gen_1_2') {
-        d.isOpen = !!(gen1?.isPressed && gen2?.isPressed);
-      }
-      if (d.linkedId === 'master_power') {
-        const allGen = gen1?.isPressed && gen2?.isPressed && gen3?.isPressed && gen4?.isPressed;
-        d.isOpen = !!(allGen && masterLever?.isOn);
+    // Level 3: "master_power" door — needs all 4 generators + master switch
+    if (this.levelId === 3) {
+      const g1 = this.plates.find(p => p.id === 'gen_1');
+      const g2 = this.plates.find(p => p.id === 'gen_2');
+      const g3 = this.plates.find(p => p.id === 'gen_3');
+      const g4 = this.plates.find(p => p.id === 'gen_4');
+      const sw = this.levers.find(l => l.id === 'master_switch');
+      const allGen = g1?.isPressed && g2?.isPressed && g3?.isPressed && g4?.isPressed;
+      for (const d of this.doors) {
+        if (d.linkedId === 'master_power') {
+          d.isOpen = !!(allGen && sw?.isOn);
+        }
       }
     }
 
     // Level 4: "summit_both" door — needs summit_a AND summit_b
-    const sa = this.plates.find(p => p.id === 'summit_a');
-    const sb = this.plates.find(p => p.id === 'summit_b');
-    for (const d of this.doors) {
-      if (d.linkedId === 'summit_both') {
-        d.isOpen = !!(sa?.isPressed && sb?.isPressed);
-      }
-    }
-
-    // Level 5: "void_all_plates" — needs ALL plates pressed
-    if (this.levelId === 5) {
-      const allPressed = this.plates.every(p => p.isPressed);
+    if (this.levelId === 4) {
+      const sa = this.plates.find(p => p.id === 'summit_a');
+      const sb = this.plates.find(p => p.id === 'summit_b');
       for (const d of this.doors) {
-        if (d.linkedId === 'void_all_plates') {
-          d.isOpen = allPressed;
+        if (d.linkedId === 'summit_both') {
+          d.isOpen = !!(sa?.isPressed && sb?.isPressed);
         }
       }
     }
@@ -654,62 +728,165 @@ class World {
   }
 
   /* =========================================================
-     DRAW
+     DRAW (High-Detail Procedural Flagstones, 3D Walls, Torches)
      ========================================================= */
   draw(ctx) {
-    const floorColor  = ['#070a18', '#081020', '#0a0c18', '#070d14', '#04080f'][this.levelId - 1] || '#070a18';
-    const wallColor   = ['#11162b', '#0d1a2e', '#1a1010', '#0a1422', '#08060f'][this.levelId - 1] || '#11162b';
-    const wallStroke  = ['#1e293b', '#1a3040', '#2a1818', '#152033', '#14102a'][this.levelId - 1] || '#1e293b';
-    const rimColor    = [
-      'rgba(0,240,255,0.2)',
-      'rgba(192,132,252,0.25)',
-      'rgba(251,146,60,0.25)',
-      'rgba(96,210,255,0.25)',
-      'rgba(139,92,246,0.3)',
-    ][this.levelId - 1] || 'rgba(0,240,255,0.2)';
-
     ctx.save();
 
-    // Floor
-    ctx.fillStyle = floorColor;
-    ctx.fillRect(0, 0, this.width, this.height);
+    // 1. Procedural Stone Flagstone Dungeon Floor
+    this.drawProceduralFloor(ctx);
 
-    // Tile grid
-    ctx.strokeStyle = 'rgba(255,255,255,0.028)';
-    ctx.lineWidth = 1;
-    for (let x = 64; x < this.width - 40; x += 48) {
-      ctx.beginPath(); ctx.moveTo(x, 64); ctx.lineTo(x, this.height - 40); ctx.stroke();
-    }
-    for (let y = 64; y < this.height - 40; y += 48) {
-      ctx.beginPath(); ctx.moveTo(64, y); ctx.lineTo(this.width - 40, y); ctx.stroke();
+    // 2. Wall Drop Shadows (Ambient Occlusion onto floor)
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.45)';
+    for (const w of this.walls) {
+      ctx.fillRect(w.x + 4, w.y + 4, w.width, w.height);
     }
 
-    // Draw order: plates → levers → tablets → doors → walls → blocks → pickups → exit
-    for (const p of this.plates)  p.draw(ctx);
+    // 3. Pressure Plates & Floor Mechanisms
+    for (const p of this.plates) p.draw(ctx);
+
+    // 4. Optical Receptors & Emitters
+    for (const rec of this.lightReceptors) rec.draw(ctx);
+    for (const em of this.lightEmitters)   em.draw(ctx);
+
+    // 5. Laser Beam Graphics
+    this.optics.draw(ctx);
+
+    // 6. Astral Dial Pedestals
+    for (const dial of this.astralDials) dial.draw(ctx);
+
+    // 7. Levers & Tablets
     for (const l of this.levers)  l.draw(ctx);
     for (const t of this.tablets) t.draw(ctx);
-    for (const d of this.doors)   d.draw(ctx);
 
-    // Walls
-    for (const w of this.walls) {
-      ctx.fillStyle   = wallColor;
-      ctx.strokeStyle = wallStroke;
-      ctx.lineWidth   = 2;
-      ctx.shadowColor = 'transparent';
-      ctx.shadowBlur  = 0;
-      ctx.fillRect(w.x, w.y, w.width, w.height);
-      ctx.strokeRect(w.x, w.y, w.width, w.height);
-      // Glowing rim
-      ctx.fillStyle = rimColor;
-      ctx.fillRect(w.x, w.y, w.width, 3);
-    }
+    // 8. Doors
+    for (const d of this.doors) d.draw(ctx);
 
+    // 9. 3D Layered Masonry Walls with Coping Caps
+    this.draw3DWalls(ctx);
+
+    // 10. Wall Sconces (Torches)
+    this.drawTorches(ctx);
+
+    // 11. Pushable Blocks & Quartz Mirrors
     for (const b of this.blocks) b.draw(ctx);
+    for (const m of this.quartzMirrors) m.draw(ctx);
+
+    // 12. Pickups & Stargate Exit
     for (const k of this.keys)   k.draw(ctx);
     for (const s of this.shards) s.draw(ctx);
     if (this.exit) this.exit.draw(ctx);
 
     ctx.restore();
+  }
+
+  drawProceduralFloor(ctx) {
+    const floorColors = [
+      { bg: '#080c1a', tile: '#0c1228', bevel: '#152044', mortar: '#04060d' }, // Darkwood
+      { bg: '#090e1f', tile: '#0e1630', bevel: '#18244f', mortar: '#050812' }, // Moon Village
+      { bg: '#0e0c16', tile: '#161324', bevel: '#221f38', mortar: '#08060d' }, // Factory
+      { bg: '#08121f', tile: '#0b1a2e', bevel: '#132c4d', mortar: '#040911' }, // Frozen Peak
+      { bg: '#060512', tile: '#0a091d', bevel: '#141235', mortar: '#030209' }, // The Void
+    ];
+    const theme = floorColors[this.levelId - 1] || floorColors[0];
+
+    // Base background
+    ctx.fillStyle = theme.bg;
+    ctx.fillRect(0, 0, this.width, this.height);
+
+    // Procedural stone flagstones
+    const tileSize = 48;
+    for (let y = 50; y < this.height - 40; y += tileSize) {
+      for (let x = 50; x < this.width - 40; x += tileSize) {
+        // Deterministic pseudo-random variation per tile
+        const hash = Math.sin(x * 12.9898 + y * 78.233) * 43758.5453;
+        const rand = hash - Math.floor(hash);
+
+        // Tile body
+        ctx.fillStyle = theme.tile;
+        ctx.fillRect(x + 2, y + 2, tileSize - 4, tileSize - 4);
+
+        // Subtle bevel highlight
+        ctx.strokeStyle = theme.bevel;
+        ctx.lineWidth = 1;
+        ctx.strokeRect(x + 2, y + 2, tileSize - 4, tileSize - 4);
+
+        // Occasional ancient cracked stone or moss detail
+        if (rand > 0.8) {
+          ctx.strokeStyle = 'rgba(0, 240, 255, 0.04)';
+          ctx.beginPath();
+          ctx.moveTo(x + 8, y + 8);
+          ctx.lineTo(x + tileSize - 12, y + tileSize - 12);
+          ctx.stroke();
+        }
+      }
+    }
+  }
+
+  draw3DWalls(ctx) {
+    const wallStyles = [
+      { fill: '#131c31', top: '#1e2d4d', stroke: '#2e4372', rune: 'rgba(56, 189, 248, 0.5)' },
+      { fill: '#141b33', top: '#1f294d', stroke: '#314175', rune: 'rgba(168, 85, 247, 0.5)' },
+      { fill: '#1c161f', top: '#2b2130', stroke: '#42334a', rune: 'rgba(251, 146, 60, 0.5)' },
+      { fill: '#0f1c2e', top: '#182d4a', stroke: '#274673', rune: 'rgba(96, 210, 255, 0.5)' },
+      { fill: '#100b21', top: '#1a1336', stroke: '#2e215e', rune: 'rgba(139, 92, 246, 0.5)' },
+    ];
+    const style = wallStyles[this.levelId - 1] || wallStyles[0];
+
+    for (const w of this.walls) {
+      // 1. Wall Masonry Front Face
+      ctx.fillStyle = style.fill;
+      ctx.strokeStyle = style.stroke;
+      ctx.lineWidth = 2;
+      ctx.fillRect(w.x, w.y, w.width, w.height);
+      ctx.strokeRect(w.x, w.y, w.width, w.height);
+
+      // 2. Top Coping Cap Trim (3D Depth)
+      const capH = Math.min(8, w.height / 2);
+      ctx.fillStyle = style.top;
+      ctx.fillRect(w.x, w.y, w.width, capH);
+
+      // 3. Glowing Starlight Inscribed Rim
+      ctx.fillStyle = style.rune;
+      ctx.fillRect(w.x + 2, w.y, w.width - 4, 2);
+
+      // 4. Subtle brick segment lines if wide
+      if (w.width > 50) {
+        ctx.strokeStyle = 'rgba(0, 0, 0, 0.3)';
+        ctx.lineWidth = 1;
+        for (let bx = w.x + 36; bx < w.x + w.width - 20; bx += 40) {
+          ctx.beginPath();
+          ctx.moveTo(bx, w.y + capH);
+          ctx.lineTo(bx, w.y + w.height);
+          ctx.stroke();
+        }
+      }
+    }
+  }
+
+  drawTorches(ctx) {
+    for (const torch of this.torches) {
+      const flicker = Math.sin(this.animTime * 12 + torch.x) * 2;
+
+      // Brass Sconce Bracket
+      ctx.fillStyle = '#78350f';
+      ctx.fillRect(torch.x - 3, torch.y - 2, 6, 8);
+
+      // Flickering Flame Core
+      ctx.fillStyle = '#f59e0b';
+      ctx.shadowColor = '#f59e0b';
+      ctx.shadowBlur = 12;
+
+      ctx.beginPath();
+      ctx.arc(torch.x + flicker * 0.5, torch.y - 4, 4, 0, Math.PI * 2);
+      ctx.fill();
+
+      // White Hot Flame Center
+      ctx.fillStyle = '#fffbeb';
+      ctx.beginPath();
+      ctx.arc(torch.x + flicker * 0.5, torch.y - 3, 2, 0, Math.PI * 2);
+      ctx.fill();
+    }
   }
 }
 

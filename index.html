@@ -172,8 +172,12 @@
             Step 1: Walk to the stone tablet and press [E] to read the ancient writings.
           </div>
 
-          <!-- Inventory (Keys & Moon Shards) -->
+          <!-- Inventory (Keys & Moon Shards & Clue Journal) -->
           <div class="hud-inventory-group">
+            <button type="button" id="btn-hud-journal" class="hud-item-pill pill-journal" title="Open Clue Journal & Codex (J)">
+              <span>📜 Journal [J]</span>
+              <span id="hud-journal-badge" class="journal-badge-count">0</span>
+            </button>
             <div class="hud-item-pill pill-key" title="Moon Keys held">
               <span id="hud-keys-val">🗝️ 0</span>
             </div>
@@ -195,8 +199,9 @@
         <div class="hud-bottom-hints">
           <div class="hud-key-pill">
             <span><b>W, A, S, D</b> Move</span>
-            <span><b>E</b> Interact / Examine</span>
-            <span><b>Push</b> Walk into Blocks</span>
+            <span><b>E</b> Interact / Rotate / Turn</span>
+            <span><b>Push</b> Walk into Blocks / Mirrors</span>
+            <span><b>J</b> Clue Journal</span>
             <span><b>R</b> Reset Puzzle</span>
             <span><b>ESC</b> Pause</span>
           </div>
@@ -281,8 +286,34 @@
 
 
     <!-- ====================================================================
-         MODALS (World Map, Settings, Lore, Supabase Setup)
+         MODALS (Clue Journal, World Map, Settings, Lore, Supabase Setup)
          ==================================================================== -->
+
+    <!-- Clue Journal & Codex Modal -->
+    <div id="modal-journal" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="journal-modal-title">
+      <div class="modal-dialog glass-panel journal-modal-dialog">
+        <div class="modal-header">
+          <h2 id="journal-modal-title" class="modal-title">
+            <span>📜</span>
+            <span>Adventurer's Clue Journal & Codex</span>
+          </h2>
+          <button class="modal-close" id="btn-close-journal" aria-label="Close Journal">✕</button>
+        </div>
+        <div class="modal-body journal-modal-body">
+          <div class="journal-sidebar">
+            <h3 class="journal-sidebar-title">Discovered Writings</h3>
+            <div id="journal-entries-list" class="journal-entries-list"></div>
+          </div>
+          <div class="journal-reader">
+            <div id="journal-detail-content" class="journal-detail-content"></div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <div style="font-size: 0.8rem; color: var(--text-muted);">Press [J] or [ESC] to resume exploration</div>
+          <button class="btn btn-primary" onclick="window.clueJournal.close()">Close Codex</button>
+        </div>
+      </div>
+    </div>
 
     <!-- Supabase Setup Modal -->
     <div id="modal-supabase" class="modal-overlay" role="dialog" aria-modal="true">
@@ -434,11 +465,15 @@
   <script src="src/core/audio-manager.js"></script>
   <script src="src/core/storage-manager.js"></script>
   <script src="src/core/screen-manager.js"></script>
+  <script src="src/game/lighting.js"></script>
+  <script src="src/game/puzzle-optics.js"></script>
+  <script src="src/game/puzzle-cipher.js"></script>
   <script src="src/game/input.js"></script>
   <script src="src/game/puzzle-objects.js"></script>
   <script src="src/game/player.js"></script>
   <script src="src/game/world.js"></script>
   <script src="src/game/hud.js"></script>
+  <script src="src/ui/clue-journal.js"></script>
   <script src="src/game/engine.js"></script>
   <script src="src/ui/auth-ui.js"></script>
   <script src="src/ui/menu-ui.js"></script>
@@ -449,8 +484,9 @@
     document.addEventListener('DOMContentLoaded', async () => {
       await window.supabaseService.ready;
 
-      // 1. Initialize Screen Router
+      // 1. Initialize Screen Router & Clue Journal
       window.screenManager.init();
+      window.clueJournal.init();
 
       // 2. Initialize Game Engine Loop
       window.gameEngine.init();

@@ -481,6 +481,73 @@ class AudioManager {
       osc.start(now);
       osc.stop(now + 0.5);
     });
+  playMirrorRotate() {
+    if (!this.ctx || this.isMuted) return;
+    const now = this.ctx.currentTime;
+    // Crisp crystal ping + subtle mechanical stone click
+    const osc = this.ctx.createOscillator();
+    const gain = this.ctx.createGain();
+    osc.type = 'triangle';
+    osc.frequency.setValueAtTime(880, now);
+    osc.frequency.exponentialRampToValueAtTime(1320, now + 0.12);
+    gain.gain.setValueAtTime(0.12, now);
+    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.14);
+    osc.connect(gain);
+    gain.connect(this.sfxGain);
+    osc.start(now);
+    osc.stop(now + 0.14);
+  }
+
+  playBeamActivate() {
+    if (!this.ctx || this.isMuted) return;
+    // Celestial chord surge
+    [523.25, 659.25, 783.99, 1046.50].forEach((freq, idx) => {
+      const now = this.ctx.currentTime + idx * 0.03;
+      const osc = this.ctx.createOscillator();
+      const gain = this.ctx.createGain();
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(freq, now);
+      gain.gain.setValueAtTime(0.1, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.4);
+      osc.connect(gain);
+      gain.connect(this.sfxGain);
+      osc.start(now);
+      osc.stop(now + 0.4);
+    });
+  }
+
+  playDialTurn() {
+    if (!this.ctx || this.isMuted) return;
+    const now = this.ctx.currentTime;
+    const osc = this.ctx.createOscillator();
+    const gain = this.ctx.createGain();
+    osc.type = 'sawtooth';
+    osc.frequency.setValueAtTime(220, now);
+    osc.frequency.exponentialRampToValueAtTime(440, now + 0.08);
+    gain.gain.setValueAtTime(0.09, now);
+    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.09);
+    osc.connect(gain);
+    gain.connect(this.sfxGain);
+    osc.start(now);
+    osc.stop(now + 0.09);
+  }
+
+  playJournalOpen() {
+    if (!this.ctx || this.isMuted) return;
+    // Fluttering parchment sound simulation
+    [320, 280, 240].forEach((freq, idx) => {
+      const now = this.ctx.currentTime + idx * 0.025;
+      const osc = this.ctx.createOscillator();
+      const gain = this.ctx.createGain();
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(freq, now);
+      gain.gain.setValueAtTime(0.06, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.12);
+      osc.connect(gain);
+      gain.connect(this.sfxGain);
+      osc.start(now);
+      osc.stop(now + 0.12);
+    });
   }
 }
 

@@ -15,7 +15,8 @@ class InputHandler {
       right: ['KeyD', 'ArrowRight'],
       interact: ['KeyE', 'Space'],
       restart: ['KeyR'],
-      pause: ['Escape', 'KeyP']
+      pause: ['Escape', 'KeyP'],
+      journal: ['KeyJ']
     };
 
     this.virtualKeys = {

@@ -47,30 +47,29 @@ class GameHUD {
     // Dynamic Tutorial Guide Banner (Level 1 only)
     if (this.tutorialGuide && world && world.levelId === 1) {
       const door1    = world.doors[0];
-      const lever    = world.levers[0];
+      const opticsDoor = world.doors[1];
       const exitDoor = world.doors[2];
 
       let guideText = 'Use [W, A, S, D] to explore the Darkwood chamber.';
 
-      if (player.x < 300) {
-        guideText = 'Step 1: Walk to the stone tablet and press [E] to read it.';
+      if (player.x < 290) {
+        guideText = 'Step 1: Walk to the stone tablet and press [E] to read and record in Journal [J].';
       } else if (door1 && !door1.isOpen) {
-        guideText = 'Step 2: Push the glowing stone block onto the purple pressure plate.';
-      } else if (lever && !lever.isOn) {
-        guideText = 'Step 3: Pass through the gate and press [E] on the ancient lever.';
+        guideText = 'Step 2: Push the heavy runic block onto the purple pressure plate.';
+      } else if (opticsDoor && !opticsDoor.isOpen) {
+        guideText = 'Step 3: Walk to the Quartz Mirror and press [E] to rotate and reflect the light beam into the receptor!';
       } else if (player.keys === 0 && exitDoor && !exitDoor.isOpen) {
         guideText = 'Step 4: Collect the Golden Moon Key 🗝️ and Moon Shard 🌙.';
       } else if (exitDoor && !exitDoor.isOpen) {
         guideText = 'Step 5: Stand by the locked golden gate and press [E] to unlock it.';
       } else {
-        guideText = 'Step 6: Step onto the glowing EXIT portal to complete the trial! ✦';
+        guideText = 'Step 6: Step onto the glowing EXIT Stargate to complete the trial! ✦';
       }
 
       this.tutorialGuide.textContent = guideText;
     } else if (this.tutorialGuide && world && world.levelId > 1) {
-      // Show level name on higher levels
       this.tutorialGuide.textContent =
-        `Region ${world.levelId}: ${LEVEL_NAMES[world.levelId] || ''}`;
+        `Region ${world.levelId}: ${LEVEL_NAMES[world.levelId] || ''} • [J] Clue Journal`;
     }
   }
 

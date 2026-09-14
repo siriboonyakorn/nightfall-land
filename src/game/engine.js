@@ -20,6 +20,7 @@ class GameEngine {
     this.world = null;
     this.player = null;
     this.hud = null;
+    this.lighting = null;
 
     // Ambient Menu Particles
     this.menuParticles = [];
@@ -43,6 +44,7 @@ class GameEngine {
 
     this.input = new window.InputHandler();
     this.hud = new window.GameHUD();
+    this.lighting = new window.LightingEngine(1280, 720);
 
     this.bindOverlayEvents();
 
@@ -243,6 +245,11 @@ class GameEngine {
         this.restartLevel();
       }
 
+      // Check Clue Journal (J key)
+      if (this.input.wasPressed('journal') && (this.state === 'PLAYING' || this.state === 'DIALOGUE')) {
+        if (window.clueJournal) window.clueJournal.toggle();
+      }
+
       // If in dialogue, pressing interact or space closes dialogue
       if (this.state === 'DIALOGUE' && this.input.wasPressed('interact')) {
         this.closeDialogue();
@@ -262,11 +269,11 @@ class GameEngine {
 
   updateGame(dt) {
     if (!this.player || !this.world) return;
-    // Only update when truly playing (not VICTORY/PAUSED/DIALOGUE)
     if (this.state !== 'PLAYING') return;
 
     this.player.update(dt, this.input, this.world, window.audioManager);
     this.world.update(dt, this.player, window.audioManager);
+    if (this.lighting) this.lighting.update(dt);
     this.hud.update(this.player, this, this.world);
   }
 
@@ -275,11 +282,16 @@ class GameEngine {
 
     this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
 
-    // 1. Draw World Tiles & Puzzle Objects
+    // 1. Draw World Tiles, Mechanisms, and Laser Optics
     this.world.draw(this.ctx);
 
     // 2. Draw Player Entity
     this.player.draw(this.ctx);
+
+    // 3. Apply Dynamic 2D Lighting, Lantern Illumination & Atmospheric Darkness
+    if (this.lighting) {
+      this.lighting.render(this.ctx, this.player, this.world);
+    }
   }
 
   renderAmbientCanvas(dt) {
